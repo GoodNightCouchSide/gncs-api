@@ -1,0 +1,131 @@
+openapi: '3.0.2'
+info:
+  title: GNCS
+  version: '1.0'
+
+servers:
+  - url: https://api.server.test/v1
+
+tags:
+  - name: Auth
+    description: Auth Route
+
+paths:
+  /api/health:
+    get:
+      tags:
+        - Other
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      description: ''
+      parameters: []
+      requestBody:
+        $ref: '#/components/requestBodies/userLoginBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/responses/UserNotFound'
+  
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      description: ''
+      parameters: []
+      requestBody:
+        $ref: '#/components/requestBodies/userLoginBody'
+      responses:
+        '200':
+          description: OK
+          
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    Token:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [bearer]
+        token:
+          type: string
+          example: Mw._LnnFavm-Nbxxsy4cZVZFo9B4AhGc6ITdC1eEElu0W__S1b9vDXNUk6RKG7R
+        expires_at:
+          type: string
+          format: date-time
+
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array
+          
+  responses:
+    UserNotFound:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+            properties:
+              errors:
+                type: array
+                items:
+                  oneOf:
+                  - type: object
+                    description: User not found in database
+                    properties:
+                      message:
+                        type: string
+                        example: 'E_INVALID_AUTH_UID: User not found'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'E_INVALID_AUTH_PASSWORD: Password mis-match'
+
+
+
+
+  requestBodies:
+    userLoginBody:
+      content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              example:
+                email: fake.email@mail.com
+                password: password1
+
