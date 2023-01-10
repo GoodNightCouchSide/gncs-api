@@ -75,7 +75,7 @@ const databaseConfig: DatabaseConfig = {
       migrations: {
         naturalSort: true,
       },
-      healthCheck: true,
+      healthCheck: Env.get('NODE_ENV') === 'development',
       debug: false,
     },
   },
