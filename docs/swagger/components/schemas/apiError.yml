@@ -1,0 +1,7 @@
+components:
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        errors:
+          type: array

@@ -1,0 +1,47 @@
+components:
+  schemas:
+    Event:
+      type: object
+      required:
+        - title
+      properties:
+        uuid:
+          type: string
+        title:
+          type: string
+          example: Fake Test Event
+          description: This Event name has to unique
+        description:
+          type: string
+          description: The Information for the Event
+          example: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+        cover:
+          type: string
+          description: the cover?
+        pre_payment:
+          type: number
+          description: Vorkasse
+          example: 12.00
+        box_office:
+          type: number
+          description: Abendkasse
+          example: 15.00
+        venue:
+          type: number
+          description: tbd
+        links:
+          type: string
+          description: list of links
+          example: facebooklink, bandcamplink, locationlink
+        creator:
+          type: number
+          description: tbd
+        is_public:
+          type: boolean
+          description: Is the event accessible for everyone or needs an approvement
+          example: true
+        created_at:
+          type: string
+        updated_at:
+          type: string
+  

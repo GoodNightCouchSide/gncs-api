@@ -1,0 +1,25 @@
+components:
+  responses:
+    UserNotFound:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+            properties:
+              errors:
+                type: array
+                items:
+                  oneOf:
+                  - type: object
+                    description: User not found in database
+                    properties:
+                      message:
+                        type: string
+                        example: 'E_INVALID_AUTH_UID: User not found'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'E_INVALID_AUTH_PASSWORD: Password mis-match'
