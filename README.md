@@ -32,9 +32,15 @@ Start the app with
 ``` npm run dev```
 
 ### Test
-TBD
+AdonisJS uses [Japa](https://japa.dev/) for writing and executing tests. So we do.
+
+Make sure you've created a database called `gncs_test`.
+Update the file `.env.test` [See documentation`](https://docs.adonisjs.com/guides/testing/introduction#environment-variables) and add the `PSQL_` values to use the test database
+
 
 Run `npm run test` to run the tests.
+
+Japa uses [Chai assertions](https://www.chaijs.com/api/assert/)
 
 ### Test routes and see Database Models with swagger
 #### Routes
