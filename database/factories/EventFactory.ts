@@ -3,7 +3,6 @@ import Factory from '@ioc:Adonis/Lucid/Factory'
 
 export default Factory.define(Event, ({ faker }: any) => {
   return {
-    id: `${faker.datatype.uuid()}`,
     title: faker.random.word(),
     description: faker.random.word(),
     cover: faker.random.numeric(),
