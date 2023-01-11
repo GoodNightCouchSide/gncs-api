@@ -139,16 +139,26 @@ components:
         - email
         - password
       properties:
+        uuid:
+          type: string
         email:
           type: string
           format: email
         password:
+          type: string
+        remember_me_token:
+          type: string
+        created_at:
+          type: string
+        updated_at:
           type: string
     Event:
       type: object
       required:
         - title
       properties:
+        uuid:
+          type: string
         title:
           type: string
           example: Fake Test Event
@@ -159,16 +169,24 @@ components:
           description: The Information for the Event
         prePayment:
           type: number
+          description: Vorkasse
           example: 12.00
           description: Vorkasse
         boxOffice:
           type: number
+          description: Abendkasse
           example: 15.00
           description: Abendkasse
 
     Token:
       type: object
       properties:
+        uuid:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
         type:
           type: string
           enum: [bearer]
@@ -178,6 +196,10 @@ components:
         expires_at:
           type: string
           format: date-time
+        created_at:
+          type: string
+        updated_at:
+          type: string
 
     ApiError:
       type: object
