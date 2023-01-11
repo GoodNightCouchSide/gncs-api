@@ -38,7 +38,7 @@ paths:
                 $ref: '#/components/schemas/Token'
         '400':
           $ref: '#/components/responses/UserNotFound'
-  
+
   /api/auth/register:
     post:
       tags:
@@ -84,12 +84,12 @@ paths:
           example: 1
       responses:
         '200':
-          description: Successful fetch a Event by ID 
+          description: Successful fetch a Event by ID
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Event'
-    
+
     patch:
       tags:
         - Event
@@ -106,12 +106,12 @@ paths:
         $ref: '#/components/requestBodies/createEventBody'
       responses:
         '200':
-          description: Successful fetch a Event by ID 
+          description: Successful fetch a Event by ID
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Event'
-    
+
     delete:
       tags:
         - Event
@@ -127,8 +127,10 @@ paths:
       responses:
         '204':
           description: Delete Event successful.
-          
 
+#
+# Database Models
+#
 components:
   schemas:
     User:
@@ -153,15 +155,17 @@ components:
           description: This Event name has to unique
         description:
           type: string
-          description: The Information for the Event
           example: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+          description: The Information for the Event
         prePayment:
           type: number
           example: 12.00
+          description: Vorkasse
         boxOffice:
           type: number
           example: 15.00
-        
+          description: Abendkasse
+
     Token:
       type: object
       properties:
@@ -180,7 +184,7 @@ components:
       properties:
         errors:
           type: array
-          
+
   responses:
     UserNotFound:
       description: Bad Request
@@ -205,8 +209,6 @@ components:
                       message:
                         type: string
                         example: 'E_INVALID_AUTH_PASSWORD: Password mis-match'
-
-
 
 
   requestBodies:
