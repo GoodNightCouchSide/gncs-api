@@ -1,10 +1,3 @@
-/**
- * Config source: https://git.io/JesV9
- *
- * Feel free to let us know via PR, if you find something broken in this config
- * file.
- */
-
 import Env from '@ioc:Adonis/Core/Env'
 import { DatabaseConfig } from '@ioc:Adonis/Lucid/Database'
 
@@ -19,7 +12,7 @@ const databaseConfig: DatabaseConfig = {
   | file.
   |
   */
-  connection: Env.get('DB_CONNECTION'),
+  connection: 'pg',
 
   connections: {
     /*
