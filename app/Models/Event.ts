@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, belongsTo, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import User from './User'
 import Venue from './Venue'
 
@@ -23,7 +23,7 @@ export default class Event extends BaseModel {
   public boxOffice: number
 
   @column()
-  public venue: number
+  public venueId: string
 
   @column()
   public links: JSON
@@ -51,6 +51,6 @@ export default class Event extends BaseModel {
   @belongsTo(() => User)
   public creatorUser: BelongsTo<typeof User>
 
-  @belongsTo(() => Venue)
-  public VenueData: BelongsTo<typeof Venue>
+  @hasOne(() => Venue)
+  public venue: HasOne<typeof Venue>
 }
