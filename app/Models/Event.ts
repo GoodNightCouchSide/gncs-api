@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, BelongsTo, belongsTo, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import User from './User'
 import Venue from './Venue'
 
@@ -29,7 +29,7 @@ export default class Event extends BaseModel {
   public links: JSON
 
   @column()
-  public creator: number
+  public creatorEmail: string
 
   @column()
   public isPublic: boolean
@@ -40,16 +40,11 @@ export default class Event extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  // @beforeSave()
-  // public static stringifyEventLinks(event: Event) {
-  //   if (event.links) {
-  //     event.links = JSON.stringify(event.links)
-  //   }
-  // }
-
   // Relationships
-  @belongsTo(() => User)
-  public creatorUser: BelongsTo<typeof User>
+  @hasOne(() => User, {
+    foreignKey: 'userEmail',
+  })
+  public creator: HasOne<typeof User>
 
   @hasOne(() => Venue)
   public venue: HasOne<typeof Venue>
