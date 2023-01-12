@@ -17,13 +17,16 @@ export default class Event extends BaseModel {
   public cover: string
 
   @column()
-  public prePayment: number
+  public prePayment: string
 
   @column()
-  public boxOffice: number
+  public boxOffice: string
 
   @column()
   public venueId: string
+
+  @column()
+  public alternativeAddress: string
 
   @column()
   public links: JSON
