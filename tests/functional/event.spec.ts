@@ -2,6 +2,8 @@ import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
 
 import EventFactory from 'Database/factories/EventFactory'
+import VenueFactory from 'Database/factories/VenueFactory'
+import UserFactory from 'Database/factories/UserFactory'
 
 test.group('Events', (group) => {
   // We use the Database global transactions to have a clean database state in-between tests.
@@ -63,31 +65,38 @@ test.group('Events', (group) => {
     eventResponse.assertStatus(404)
   })
 
-  // test('create an event', async ({ client, assert }) => {
-  //   const response = await client.post('/api/events').json({
-  //     title: 'testevent',
-  //     description: 'description of testevent',
-  //     cover: 'link to cover',
-  //     pre_payment: '33',
-  //     box_office: '35',
-  //     links: 'https://www.test-location.de',
-  //   })
-  //   assert.isTrue(response.body().success)
-  //   console.log(response.body().event)
-  //   assert.properties(response.body().event, [
-  //     'id',
-  //     'title',
-  //     'description',
-  //     'cover',
-  //     'pre_payment',
-  //     'box_office',
-  //     'venue_id',
-  //     'links',
-  //     'creator_email',
-  //     'created_at',
-  //     'updated_at',
-  //   ])
-  // })
+  test('create an event', async ({ client, assert }) => {
+    const venue = await VenueFactory.create()
+    const user = await UserFactory.create()
+
+    const response = await client.post('/api/events').json({
+      title: 'testevent',
+      description: 'description of testevent',
+      cover: 'https://link-to-cover.de',
+      pre_payment: '33 Euro',
+      box_office: '34',
+      links: 'https://www.test-location.de',
+      alternative_address: 'test',
+      creator_email: user.email,
+      venue_id: venue.id,
+    })
+    assert.isTrue(response.body().success)
+    assert.properties(response.body().event, [
+      'id',
+      'title',
+      'description',
+      'cover',
+      'pre_payment',
+      'box_office',
+      'venue_id',
+      'alternative_address',
+      'links',
+      'is_public',
+      'creator_email',
+      'created_at',
+      'updated_at',
+    ])
+  })
 
   test('update an event', async ({ client, assert }) => {
     await EventFactory.create()
