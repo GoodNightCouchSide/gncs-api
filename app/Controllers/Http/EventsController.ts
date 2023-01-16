@@ -34,8 +34,8 @@ export default class EventsController {
     try {
       const payload = await request.validate(CreateEventValidator)
       // TODO set is_public if user.role equal moderator or admin
-      const body = Object.assign(payload, { is_public: false })
-      const event = await Event.create(body)
+      // TODO create_email must not be handed over, must be taken over via the auth
+      const event = await Event.create(payload)
       response.json({ success: true, event })
     } catch (error) {
       response.badRequest(error)

@@ -35,7 +35,7 @@ export default class Event extends BaseModel {
   public creatorEmail?: string
 
   @column()
-  public isPublic?: boolean
+  public isPublic?: boolean = false
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
