@@ -16,7 +16,17 @@ paths:
         $ref: '#/components/requestBodies/createEventBody'
       responses:
         '201':
-          $ref: '#/components/schemas/Event'
+          description: Successful create a new Event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  Event:
+                    $ref: '#/components/schemas/Event'
 
   /api/events/{id}:
     get:
