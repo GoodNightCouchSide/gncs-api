@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Event from 'App/Models/Event'
-import NewEventValidator from 'App/Validators/NewEventValidator'
+import CreateEventValidator from 'App/Validators/CreateEventValidator'
 
 export default class EventsController {
   // until we don't have a validator, we should keep our requests save this way
@@ -32,7 +32,7 @@ export default class EventsController {
   // post one event
   public async store({ request, response }: HttpContextContract) {
     try {
-      const payload = await request.validate(NewEventValidator)
+      const payload = await request.validate(CreateEventValidator)
       // TODO set is_public if user.role equal moderator or admin
       const body = Object.assign(payload, { is_public: false })
       const event = await Event.create(body)
