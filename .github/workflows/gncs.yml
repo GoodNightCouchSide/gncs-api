@@ -1,0 +1,68 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+name: GNCS workflow
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    # containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    container: node:16
+
+    services:
+      # label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:13
+        # service environment variables
+        # `POSTGRES_HOST` is `postgres`
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres_user
+        ports:
+          # maps tcp port 5432 on service container to the host
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Downloads a copy of the code in the repo to the CI instance before running CI tests
+      - uses: actions/checkout@v3
+      # Cache node_moules
+      - name: Install Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      # Performs a clean installation of all dependencies in the `package.json` file
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Create a publishable build folder
+      - name: Build
+        run: npm run build
+
+      - name: Run the tests
+        run: npm test
+        env:
+          HOST: 0.0.0.0
+          PORT: 3333
+          APP_KEY: RANDOMBUTFLUFFYZORRO
+          PG_HOST: postgres
+          PG_PORT: 5432
+          PG_USER: postgres_user
+          PG_PASSWORD: postgres
+          DRIVE_DISK: local
+          CACHE_VIEWS: false
+          SESSION_DRIVER: memory
+
