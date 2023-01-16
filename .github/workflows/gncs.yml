@@ -20,6 +20,7 @@ jobs:
         # `POSTGRES_HOST` is `postgres`
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: db_test
           POSTGRES_USER: postgres_user
         ports:
           # maps tcp port 5432 on service container to the host
@@ -61,6 +62,7 @@ jobs:
           PG_HOST: postgres
           PG_PORT: 5432
           PG_USER: postgres_user
+          PG_DB_NAME: db_test
           PG_PASSWORD: postgres
           DRIVE_DISK: local
           CACHE_VIEWS: false
