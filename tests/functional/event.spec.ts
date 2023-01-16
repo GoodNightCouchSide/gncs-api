@@ -70,8 +70,8 @@ test.group('Events', (group) => {
     const user = await UserFactory.create()
 
     const response = await client.post('/api/events').json({
-      title: 'testevent',
-      description: 'description of testevent',
+      title: 'testEvent',
+      description: 'description of testEvent',
       cover: 'https://link-to-cover.de',
       pre_payment: '33 Euro',
       box_office: '34',
@@ -96,6 +96,151 @@ test.group('Events', (group) => {
       'created_at',
       'updated_at',
     ])
+  })
+
+  test('create basic event', async ({ client, assert }) => {
+    const response = await client.post('/api/events').json({
+      title: 'testEvent',
+    })
+    assert.isTrue(response.body().success)
+    assert.properties(response.body().event, [
+      'id',
+      'title',
+      'is_public',
+      'created_at',
+      'updated_at',
+    ])
+  })
+
+  test('create an event without title', async ({ client, assert }) => {
+    const response = await client.post('/api/events').json({
+      description: 'test event description',
+    })
+    assert.equal(response.status(), 400)
+    response.assertBody({
+      flashToSession: false,
+      messages: {
+        errors: [
+          {
+            field: 'title',
+            message: 'title is required to create an event',
+            rule: 'required',
+          },
+        ],
+      },
+    })
+  })
+
+  test('create an event that title is not unique', async ({ client, assert }) => {
+    const eventBody = {
+      title: 'testEvent',
+    }
+    const response1 = await client.post('/api/events').json(eventBody)
+    assert.isTrue(response1.body().success)
+    const response2 = await client.post('/api/events').json(eventBody)
+    assert.equal(response2.status(), 400)
+    response2.assertBody({
+      flashToSession: false,
+      messages: {
+        errors: [
+          {
+            field: 'title',
+            message: 'unique validation error on title',
+            rule: 'unique',
+          },
+        ],
+      },
+    })
+  })
+
+  test('create an event with wrong venue reference', async ({ client, assert }) => {
+    const response = await client.post('/api/events').json({
+      title: 'testEvent',
+      venue_id: '36fc7b37-e04d-4e51-9f9e-a3cc13488239',
+    })
+    assert.equal(response.status(), 400)
+    response.assertBody({
+      flashToSession: false,
+      messages: {
+        errors: [
+          {
+            field: 'venue_id',
+            message: 'exists validation error on venue_id',
+            rule: 'exists',
+          },
+        ],
+      },
+    })
+  })
+
+  test('create an event with wrong uuid type for venue', async ({ client, assert }) => {
+    const response = await client.post('/api/events').json({
+      title: 'testEvent',
+      venue_id: 'fakeUUID',
+    })
+    assert.equal(response.status(), 400)
+    response.assertBody({
+      flashToSession: false,
+      messages: {
+        errors: [
+          {
+            field: 'venue_id',
+            message: 'uuid validation error on venue_id',
+            rule: 'uuid',
+          },
+          {
+            field: 'venue_id',
+            message: 'exists validation error on venue_id',
+            rule: 'exists',
+          },
+        ],
+      },
+    })
+  })
+
+  test('create an event with wrong creator reference', async ({ client, assert }) => {
+    const response = await client.post('/api/events').json({
+      title: 'testEvent',
+      creator_email: 'some.fake@mail.com',
+    })
+    assert.equal(response.status(), 400)
+    response.assertBody({
+      flashToSession: false,
+      messages: {
+        errors: [
+          {
+            field: 'creator_email',
+            message: 'exists validation error on creator_email',
+            rule: 'exists',
+          },
+        ],
+      },
+    })
+  })
+
+  test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
+    const response = await client.post('/api/events').json({
+      title: 'testEvent',
+      creator_email: 'NoValidEmailAddress',
+    })
+    assert.equal(response.status(), 400)
+    response.assertBody({
+      flashToSession: false,
+      messages: {
+        errors: [
+          {
+            field: 'creator_email',
+            message: 'email validation error on creator_email',
+            rule: 'email',
+          },
+          {
+            field: 'creator_email',
+            message: 'exists validation error on creator_email',
+            rule: 'exists',
+          },
+        ],
+      },
+    })
   })
 
   test('update an event', async ({ client, assert }) => {
