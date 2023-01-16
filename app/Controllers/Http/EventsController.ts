@@ -4,20 +4,6 @@ import CreateEventValidator from 'App/Validators/CreateEventValidator'
 import UpdateEventValidator from 'App/Validators/UpdateEventValidator'
 
 export default class EventsController {
-  // until we don't have a validator, we should keep our requests save this way
-  private eventFields = [
-    'id',
-    'title',
-    'description',
-    'cover',
-    'pre_payment',
-    'box_office',
-    'venue',
-    'links',
-    'creator_email',
-    'is_public',
-  ]
-
   // get all events
   public async index({ response }: HttpContextContract) {
     const events = await Event.query()
