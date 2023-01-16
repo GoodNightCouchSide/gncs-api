@@ -271,7 +271,6 @@ test.group('Events', (group) => {
     await EventFactory.create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
-
     const venue = await VenueFactory.create()
 
     const requestBody = {
@@ -282,6 +281,7 @@ test.group('Events', (group) => {
       box_office: '25 Tacken',
       links: 'https://www.new-test-location.de',
       alternative_address: 'somewhere else',
+      is_public: false,
       venue_id: venue.id,
     }
     const response = await client.put(`/api/events/${id}`).json(requestBody)
