@@ -5,7 +5,7 @@ export default class NewEventValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    title: schema.string([rules.required(), rules.unique({ table: 'events', column: 'title' })]),
+    title: schema.string([rules.unique({ table: 'events', column: 'title' })]),
     description: schema.string.optional(),
     box_office: schema.string.optional(),
     pre_payment: schema.string.optional(),
@@ -26,6 +26,6 @@ export default class NewEventValidator {
     '*': (field, rule) => {
       return `${rule} validation error on ${field}`
     },
-    'required': '{{ filed }} is required to create an event',
+    'title.required': 'title is required to create an event',
   }
 }
