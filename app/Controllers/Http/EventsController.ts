@@ -1,6 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Event from 'App/Models/Event'
 import CreateEventValidator from 'App/Validators/CreateEventValidator'
+import UpdateEventValidator from 'App/Validators/UpdateEventValidator'
 
 export default class EventsController {
   // until we don't have a validator, we should keep our requests save this way
@@ -45,9 +46,9 @@ export default class EventsController {
   // update one event with id
   public async update({ request, response }: HttpContextContract) {
     const event = await Event.findByOrFail('id', request.param('id'))
-    const body = request.only(this.eventFields)
+    const payload = await request.validate(UpdateEventValidator)
 
-    await event.merge(body).save()
+    await event.merge(payload).save()
     response.json({ success: true, event })
   }
 
