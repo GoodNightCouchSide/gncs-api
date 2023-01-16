@@ -243,7 +243,7 @@ test.group('Events', (group) => {
     })
   })
 
-  test('update an event', async ({ client, assert }) => {
+  test('update only a event title', async ({ client, assert }) => {
     await EventFactory.create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
@@ -253,6 +253,57 @@ test.group('Events', (group) => {
     })
     assert.isTrue(response.body().success)
     assert.equal(response.body().event.title, 'This is a brand new title')
+  })
+
+  test('update only a event description', async ({ client, assert }) => {
+    await EventFactory.create()
+    const allEvents = await client.get('/api/events')
+    const { id } = allEvents.body().events[0]
+
+    const response = await client.put(`/api/events/${id}`).json({
+      description: 'This is a brand new description',
+    })
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.description, 'This is a brand new description')
+  })
+
+  test('update the whole event', async ({ client, assert }) => {
+    await EventFactory.create()
+    const allEvents = await client.get('/api/events')
+    const { id } = allEvents.body().events[0]
+
+    const venue = await VenueFactory.create()
+
+    const requestBody = {
+      title: 'Super New Title',
+      description: 'A new description for the Super new Event',
+      cover: 'https://link-to-ohter-webseit.de',
+      pre_payment: '24 €',
+      box_office: '25 Tacken',
+      links: 'https://www.new-test-location.de',
+      alternative_address: 'somewhere else',
+      venue_id: venue.id,
+    }
+    const response = await client.put(`/api/events/${id}`).json(requestBody)
+    assert.isTrue(response.body().success)
+    Object.keys(requestBody).forEach((key) => {
+      assert.equal(response.body().event[key], requestBody[key])
+    })
+  })
+
+  test('not allowed to override the event creator email', async ({ client, assert }) => {
+    await EventFactory.create()
+    const allEvents = await client.get('/api/events')
+    const { id, createEmail } = allEvents.body().events[0]
+
+    const creator = await UserFactory.create()
+
+    const requestBody = {
+      creator_email: creator.email,
+    }
+    const response = await client.put(`/api/events/${id}`).json(requestBody)
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.create_email, createEmail)
   })
 
   test('delete an event', async ({ client, assert }) => {
