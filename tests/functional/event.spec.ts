@@ -65,7 +65,7 @@ test.group('Events', (group) => {
     eventResponse.assertStatus(404)
   })
 
-  test('create an event', async ({ client, assert }) => {
+  test('create an event with all allowed fields', async ({ client, assert }) => {
     const venue = await VenueFactory.create()
     const user = await UserFactory.create()
 
@@ -98,7 +98,7 @@ test.group('Events', (group) => {
     ])
   })
 
-  test('create basic event', async ({ client, assert }) => {
+  test('create basic event with only required fields', async ({ client, assert }) => {
     const response = await client.post('/api/events').json({
       title: 'testEvent',
     })
