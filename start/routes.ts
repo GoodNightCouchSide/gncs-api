@@ -8,12 +8,9 @@ Route.group(() => {
     Route.post('/register', 'AuthController.register')
   }).prefix('auth')
 
-  // Route.group(() => {
-  //   Route.get('/', 'EventsController.index')
-  //   Route.post('/', 'EventsController.store')
-  //   Route.get('/:id', 'EventsController.show')
-  // }).prefix('events')
   Route.resource('events', 'EventsController').apiOnly()
+
+  Route.resource('venues', 'VenuesController').apiOnly()
 
   Route.get('/health', async ({ response }: HttpContextContract) => {
     const report = await HealthCheck.getReport()

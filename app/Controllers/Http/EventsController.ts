@@ -1,7 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+
 import Event from 'App/Models/Event'
-import CreateEventValidator from 'App/Validators/CreateEventValidator'
-import UpdateEventValidator from 'App/Validators/UpdateEventValidator'
+import CreateEventValidator from 'App/Validators/Event/CreateEventValidator'
+import UpdateEventValidator from 'App/Validators/Event/UpdateEventValidator'
 
 export default class EventsController {
   // get all events
