@@ -1,0 +1,8 @@
+components:
+  requestBodies:        
+    createEventBody:
+      description: Successful create a new Event
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BasicEvent'

@@ -1,0 +1,23 @@
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        uuid:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        remember_me_token:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

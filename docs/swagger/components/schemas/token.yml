@@ -1,0 +1,26 @@
+components:
+  schemas:
+    Token:
+      type: object
+      properties:
+        uuid:
+          type: string
+        user_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [bearer]
+        token:
+          type: string
+          example: Mw._LnnFavm-Nbxxsy4cZVZFo9B4AhGc6ITdC1eEElu0W__S1b9vDXNUk6RKG7R
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

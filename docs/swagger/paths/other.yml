@@ -1,0 +1,8 @@
+paths:
+  /api/health:
+    get:
+      tags:
+        - Other
+      responses:
+        '200':
+          description: OK

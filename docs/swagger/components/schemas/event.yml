@@ -1,0 +1,63 @@
+components:
+  schemas:
+    BasicEvent:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: Fake Test Event
+          description: This Event name has to unique
+        description:
+          type: string
+          description: The Information for the Event
+          example: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+        cover:
+          type: string
+          format: hostname
+          description: url link to event cover
+        pre_payment:
+          type: string
+          description: Vorkasse (Is string because it should be possible to specify from to)
+          example: "12.00€"
+        box_office:
+          type: string
+          description: Abendkasse (Is string because it should be possible to specify from to)
+          example: "15.00€"
+        venue_id:
+          type: string
+          format: uuid
+          description: Is the reference to the Venue.
+        links:
+          type: string
+          description: list of links
+          example: "https://facebook.de, https://bandcamp.com"
+        alternativeAddress:
+          type: string
+          description: If the venue is not stored in the database or the address has a different format than usual
+          example: Treptower park rave
+    Event:
+      allOf:
+        - $ref: '#components/schemas/BasicEvent'
+        - type: object
+          properties:
+            uuid:
+              type: string
+              format: uuid
+            creator_email:
+              type: string
+              format: email
+              description: Is the creator (reference to User with email column) of this event and can not be changed.
+            is_public:
+              type: boolean
+              default: false
+              description: Is the event accessible for everyone or needs an approvement
+              example: false
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+  

@@ -1,0 +1,30 @@
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      description: ''
+      parameters: []
+      requestBody:
+        $ref: '#/components/requestBodies/userLoginBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/responses/UserNotFound'
+
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      description: ''
+      parameters: []
+      requestBody:
+        $ref: '#/components/requestBodies/userLoginBody'
+      responses:
+        '200':
+          description: OK

@@ -1,0 +1,88 @@
+paths:
+  /api/events:
+    get:
+      tags:
+        - Event
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    post:
+      tags:
+        - Event
+      description: Create a new Event
+      requestBody:
+        $ref: '#/components/requestBodies/createEventBody'
+      responses:
+        '201':
+          description: Successful create a new Event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  Event:
+                    $ref: '#/components/schemas/Event'
+
+  /api/events/{id}:
+    get:
+      tags:
+        - Event
+      description: Get Event by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+          description: Event ID
+          example: 1
+      responses:
+        '200':
+          description: Successful fetch a Event by ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+    patch:
+      tags:
+        - Event
+      description: Update a Event by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+          description: Event ID
+          example: 1
+      requestBody:
+        $ref: '#/components/requestBodies/createEventBody'
+      responses:
+        '200':
+          description: Successful fetch a Event by ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+    delete:
+      tags:
+        - Event
+      description: Delete a Event by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+          description: Event ID
+          example: 1
+      responses:
+        '204':
+          description: Delete Event successful.
