@@ -11,31 +11,31 @@ export default class Event extends BaseModel {
   public title: string
 
   @column()
-  public description: string
+  public description?: string
 
   @column()
-  public cover: string
+  public cover?: string
 
   @column()
-  public prePayment: string
+  public prePayment?: string
 
   @column()
-  public boxOffice: string
+  public boxOffice?: string
 
   @column()
-  public venueId: string
+  public venueId?: string
 
   @column()
-  public alternativeAddress: string
+  public alternativeAddress?: string
 
   @column()
-  public links: JSON
+  public links?: string
 
   @column()
-  public creatorEmail: string
+  public creatorEmail?: string
 
   @column()
-  public isPublic: boolean
+  public isPublic?: boolean = false
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

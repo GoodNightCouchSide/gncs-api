@@ -1,21 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Event from 'App/Models/Event'
+import CreateEventValidator from 'App/Validators/CreateEventValidator'
+import UpdateEventValidator from 'App/Validators/UpdateEventValidator'
 
 export default class EventsController {
-  // until we don't have a validator, we should keep our requests save this way
-  private eventFields = [
-    'id',
-    'title',
-    'description',
-    'cover',
-    'pre_payment',
-    'box_office',
-    'venue',
-    'links',
-    'creator',
-    'is_public',
-  ]
-
   // get all events
   public async index({ response }: HttpContextContract) {
     const events = await Event.query()
@@ -30,17 +18,23 @@ export default class EventsController {
 
   // post one event
   public async store({ request, response }: HttpContextContract) {
-    const body = request.only(this.eventFields)
-    const event = await Event.create(body)
-    response.json({ success: true, event })
+    try {
+      const payload = await request.validate(CreateEventValidator)
+      // TODO set is_public if user.role equal moderator or admin
+      // TODO create_email must not be handed over, must be taken over via the auth
+      const event = await Event.create(payload)
+      response.json({ success: true, event })
+    } catch (error) {
+      response.badRequest(error)
+    }
   }
 
   // update one event with id
   public async update({ request, response }: HttpContextContract) {
     const event = await Event.findByOrFail('id', request.param('id'))
-    const body = request.only(this.eventFields)
+    const payload = await request.validate(UpdateEventValidator)
 
-    await event.merge(body).save()
+    await event.merge(payload).save()
     response.json({ success: true, event })
   }
 
