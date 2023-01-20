@@ -13,6 +13,9 @@ test.group('Events', (group) => {
     return () => Database.rollbackGlobalTransaction()
   })
 
+  /**
+   * GET Events
+   */
   test('get a list of events', async ({ client, assert }) => {
     const response = await client.get('/api/events')
     response.assertStatus(200)
@@ -73,6 +76,9 @@ test.group('Events', (group) => {
     eventResponse.assertStatus(404)
   })
 
+  /**
+   * CREATE Events
+   */
   test('create an event with all allowed fields', async ({ client, assert }) => {
     const venue = await VenueFactory.create()
     const user = await UserFactory.create()
@@ -186,6 +192,9 @@ test.group('Events', (group) => {
     assert.equal(response.body().errors[0].message, 'Please enter a valid email address')
   })
 
+  /**
+   * UPDATE Events
+   */
   test('update only a event title', async ({ client, assert }) => {
     await EventFactory.create()
     const allEvents = await client.get('/api/events')
@@ -252,6 +261,9 @@ test.group('Events', (group) => {
     assert.equal(response.body().event.create_email, createEmail)
   })
 
+  /**
+   * DELETE Events
+   */
   test('delete an event', async ({ client, assert }) => {
     await EventFactory.create()
     const allEvents = await client.get('/api/events')

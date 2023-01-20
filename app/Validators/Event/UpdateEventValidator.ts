@@ -6,7 +6,7 @@ export default class UpdateEventValidator {
 
   public schema = schema.create({
     title: schema.string.optional([rules.unique({ table: 'events', column: 'title' })]),
-    date: schema.date({ format: 'iso' }),
+    date: schema.date.optional({ format: 'iso' }),
     headliner: schema.string.optional(),
     support: schema.string.optional(),
     description: schema.string.optional(),
