@@ -1,7 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import Venue from 'App/Models/Venue'
-import CreateOrUpdateVenueValidator from 'App/Validators/Venue/CreateOrUpdateVenueValidator'
+import CreateVenueValidator from 'App/Validators/Venue/CreateVenueValidator'
+import UpdateVenueValidator from 'App/Validators/Venue/UpdateVenueValidator'
 
 export default class VenuesController {
   // get all venues
@@ -22,14 +23,11 @@ export default class VenuesController {
   // post one venue
   // user must be moderator or admin
   public async store({ request, response }: HttpContextContract) {
-    try {
-      const payload = await request.validate(CreateOrUpdateVenueValidator)
-      const venue = await Venue.create(payload)
+    const payload = await request.validate(CreateVenueValidator)
+    const venue = await Venue.create(payload)
+    await venue.refresh()
 
-      response.json({ success: true, venue })
-    } catch (error) {
-      response.badRequest(error)
-    }
+    response.json({ success: true, venue })
   }
 
   // update one venue with id
@@ -37,9 +35,11 @@ export default class VenuesController {
   public async update({ request, response }: HttpContextContract) {
     const { id } = request.params()
     const venue = await Venue.findOrFail(id)
-    const payload = await request.validate(CreateOrUpdateVenueValidator)
+    const payload = await request.validate(UpdateVenueValidator)
 
     await venue.merge(payload).save()
+    await venue.refresh()
+
     response.json({ success: true, venue })
   }
 
