@@ -20,14 +20,18 @@ test.group('Events', (group) => {
 
     const events = response.body().events
     assert.lengthOf(events, 2)
-    assert.properties(events[0], [
+    assert.onlyProperties(events[0], [
       'id',
       'title',
+      'date',
+      'headliner',
+      'support',
       'description',
       'cover',
       'pre_payment',
       'box_office',
       'venue_id',
+      'alternative_address',
       'links',
       'creator_email',
       'is_public',
@@ -44,14 +48,18 @@ test.group('Events', (group) => {
     eventResponse.assertStatus(200)
     assert.isTrue(eventResponse.body().success)
 
-    assert.properties(eventResponse.body().event, [
+    assert.onlyProperties(eventResponse.body().event, [
       'id',
       'title',
+      'date',
+      'headliner',
+      'support',
       'description',
       'cover',
       'pre_payment',
       'box_office',
       'venue_id',
+      'alternative_address',
       'links',
       'creator_email',
       'is_public',
@@ -71,6 +79,8 @@ test.group('Events', (group) => {
 
     const response = await client.post('/api/events').json({
       title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Super nice Band',
       description: 'description of testEvent',
       cover: 'https://link-to-cover.de',
       pre_payment: '33 Euro',
@@ -84,6 +94,8 @@ test.group('Events', (group) => {
     assert.properties(response.body().event, [
       'id',
       'title',
+      'date',
+      'headliner',
       'description',
       'cover',
       'pre_payment',
@@ -101,11 +113,15 @@ test.group('Events', (group) => {
   test('create basic event with only required fields', async ({ client, assert }) => {
     const response = await client.post('/api/events').json({
       title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
     })
     assert.isTrue(response.body().success)
-    assert.properties(response.body().event, [
+    assert.onlyProperties(response.body().event, [
       'id',
       'title',
+      'date',
+      'headliner',
       'is_public',
       'created_at',
       'updated_at',
@@ -124,6 +140,8 @@ test.group('Events', (group) => {
   test('create an event that title is not unique', async ({ client, assert }) => {
     const eventBody = {
       title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Test Headliner',
     }
     const response1 = await client.post('/api/events').json(eventBody)
     const response2 = await client.post('/api/events').json(eventBody)
@@ -136,6 +154,8 @@ test.group('Events', (group) => {
   test('create an event with wrong venue reference', async ({ client, assert }) => {
     const response = await client.post('/api/events').json({
       title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Test Headliner',
       venue_id: '36fc7b37-e04d-4e51-9f9e-a3cc13488239',
     })
 
@@ -146,6 +166,8 @@ test.group('Events', (group) => {
   test('create an event with wrong creator reference', async ({ client, assert }) => {
     const response = await client.post('/api/events').json({
       title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Test Headliner',
       creator_email: 'some.fake@mail.com',
     })
 
@@ -156,6 +178,8 @@ test.group('Events', (group) => {
   test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
     const response = await client.post('/api/events').json({
       title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Test Headliner',
       creator_email: 'NoValidEmailAddress',
     })
     assert.equal(response.status(), 422)
@@ -194,6 +218,9 @@ test.group('Events', (group) => {
 
     const requestBody = {
       title: 'Super New Title',
+      date: '2023-01-20T01:06:21.812+01:00',
+      headliner: 'Update a Headliner',
+      support: '["Support Band 1", "Support Band 2", "Support Band 3"]',
       description: 'A new description for the Super new Event',
       cover: 'https://link-to-ohter-webseit.de',
       pre_payment: '24 €',
