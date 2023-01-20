@@ -11,7 +11,16 @@ export default class Event extends BaseModel {
   public title: string
 
   @column()
-  public description: string
+  public headliner: string
+
+  @column()
+  public support?: string
+
+  @column()
+  public date: DateTime
+
+  @column()
+  public description?: string
 
   @column()
   public cover: string
