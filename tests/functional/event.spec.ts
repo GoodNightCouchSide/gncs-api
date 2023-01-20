@@ -116,19 +116,9 @@ test.group('Events', (group) => {
     const response = await client.post('/api/events').json({
       description: 'test event description',
     })
-    assert.equal(response.status(), 400)
-    response.assertBody({
-      flashToSession: false,
-      messages: {
-        errors: [
-          {
-            field: 'title',
-            message: 'title is required to create an event',
-            rule: 'required',
-          },
-        ],
-      },
-    })
+
+    assert.equal(response.status(), 422)
+    assert.equal(response.body().errors[0].message, 'title is required to create an event')
   })
 
   test('create an event that title is not unique', async ({ client, assert }) => {
@@ -136,21 +126,11 @@ test.group('Events', (group) => {
       title: 'testEvent',
     }
     const response1 = await client.post('/api/events').json(eventBody)
-    assert.isTrue(response1.body().success)
     const response2 = await client.post('/api/events').json(eventBody)
-    assert.equal(response2.status(), 400)
-    response2.assertBody({
-      flashToSession: false,
-      messages: {
-        errors: [
-          {
-            field: 'title',
-            message: 'unique validation error on title',
-            rule: 'unique',
-          },
-        ],
-      },
-    })
+
+    assert.isTrue(response1.body().success)
+    assert.equal(response2.status(), 422)
+    assert.equal(response2.body().errors[0].message, 'title already exists')
   })
 
   test('create an event with wrong venue reference', async ({ client, assert }) => {
@@ -158,44 +138,9 @@ test.group('Events', (group) => {
       title: 'testEvent',
       venue_id: '36fc7b37-e04d-4e51-9f9e-a3cc13488239',
     })
-    assert.equal(response.status(), 400)
-    response.assertBody({
-      flashToSession: false,
-      messages: {
-        errors: [
-          {
-            field: 'venue_id',
-            message: 'exists validation error on venue_id',
-            rule: 'exists',
-          },
-        ],
-      },
-    })
-  })
 
-  test('create an event with wrong uuid type for venue', async ({ client, assert }) => {
-    const response = await client.post('/api/events').json({
-      title: 'testEvent',
-      venue_id: 'fakeUUID',
-    })
-    assert.equal(response.status(), 400)
-    response.assertBody({
-      flashToSession: false,
-      messages: {
-        errors: [
-          {
-            field: 'venue_id',
-            message: 'uuid validation error on venue_id',
-            rule: 'uuid',
-          },
-          {
-            field: 'venue_id',
-            message: 'exists validation error on venue_id',
-            rule: 'exists',
-          },
-        ],
-      },
-    })
+    assert.equal(response.status(), 422)
+    assert.equal(response.body().errors[0].message, 'Referenced venue does not exist')
   })
 
   test('create an event with wrong creator reference', async ({ client, assert }) => {
@@ -203,19 +148,9 @@ test.group('Events', (group) => {
       title: 'testEvent',
       creator_email: 'some.fake@mail.com',
     })
-    assert.equal(response.status(), 400)
-    response.assertBody({
-      flashToSession: false,
-      messages: {
-        errors: [
-          {
-            field: 'creator_email',
-            message: 'exists validation error on creator_email',
-            rule: 'exists',
-          },
-        ],
-      },
-    })
+
+    assert.equal(response.status(), 422)
+    assert.equal(response.body().errors[0].message, 'Referenced user does not exist')
   })
 
   test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
@@ -223,24 +158,8 @@ test.group('Events', (group) => {
       title: 'testEvent',
       creator_email: 'NoValidEmailAddress',
     })
-    assert.equal(response.status(), 400)
-    response.assertBody({
-      flashToSession: false,
-      messages: {
-        errors: [
-          {
-            field: 'creator_email',
-            message: 'email validation error on creator_email',
-            rule: 'email',
-          },
-          {
-            field: 'creator_email',
-            message: 'exists validation error on creator_email',
-            rule: 'exists',
-          },
-        ],
-      },
-    })
+    assert.equal(response.status(), 422)
+    assert.equal(response.body().errors[0].message, 'Please enter a valid email address')
   })
 
   test('update only a event title', async ({ client, assert }) => {

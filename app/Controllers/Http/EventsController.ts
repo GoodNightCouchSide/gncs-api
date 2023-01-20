@@ -19,15 +19,13 @@ export default class EventsController {
 
   // post one event
   public async store({ request, response }: HttpContextContract) {
-    try {
-      const payload = await request.validate(CreateEventValidator)
-      // TODO set is_public if user.role equal moderator or admin
-      // TODO create_email must not be handed over, must be taken over via the auth
-      const event = await Event.create(payload)
-      response.json({ success: true, event })
-    } catch (error) {
-      response.badRequest(error)
-    }
+    const payload = await request.validate(CreateEventValidator)
+    // TODO set is_public if user.role equal moderator or admin
+    // TODO create_email must not be handed over, must be taken over via the auth
+    const event = await Event.create(payload)
+    await event.refresh()
+
+    response.json({ success: true, event })
   }
 
   // update one event with id
