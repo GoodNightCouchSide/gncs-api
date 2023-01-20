@@ -6,7 +6,7 @@ export default Factory.define(Venue, ({ faker }) => {
     name: faker.random.word(),
     description: faker.random.words(),
     street: faker.address.street(),
-    streetNumber: faker.random.numeric(),
+    streetNumber: String(faker.random.numeric(2)),
     postCode: String(faker.random.numeric(5)),
     city: faker.address.city(),
   }
