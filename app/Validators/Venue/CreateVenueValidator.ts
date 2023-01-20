@@ -11,6 +11,7 @@ export default class CreateVenueValidator {
     streetNumber: schema.string([rules.minLength(1), rules.maxLength(5), rules.trim()]),
     postCode: schema.string([rules.minLength(5), rules.maxLength(5), rules.trim()]),
     city: schema.string({ trim: true }),
+    url: schema.string.optional([rules.url(), rules.trim()]),
   })
 
   public messages: CustomMessages = {

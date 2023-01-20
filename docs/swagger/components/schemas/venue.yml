@@ -4,6 +4,10 @@ components:
       type: object
       required:
         - name
+        - street
+        - street_number
+        - post_code
+        - city
       properties:
         uuid:
           type: string
@@ -21,14 +25,19 @@ components:
         street_number:
           type: string
           description: Hausnummer
-          example: 12
+          example: '12a'
         post_code:
           type: string
           description: zip
-          example: 12345
+          example: '12345'
         city:
           type: string
-          description: Berlin
+          description: city of the location
+          example: Berlin
+        url:
+          type: string
+          description: url of website or facebook or whatever
+          example: http://www.a-supercool-venue.com
         created_at:
           type: string
           format: date-time

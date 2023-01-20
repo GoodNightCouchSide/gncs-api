@@ -115,6 +115,7 @@ test.group('Venues', (group) => {
       street_number: '1312',
       post_code: '67890',
       city: 'Bubblegum',
+      url: 'www.rocko.com',
     }
 
     const response = await client.put(`/api/venues/${venue.id}`).json({
