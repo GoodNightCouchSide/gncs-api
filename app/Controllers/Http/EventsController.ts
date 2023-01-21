@@ -23,7 +23,11 @@ export default class EventsController {
   public async store({ request, response, auth }: HttpContextContract) {
     const payload = await request.validate(CreateEventValidator)
     const event = await Event.create(payload)
-
+    if (auth.user) {
+      // TODO set is_public if user.role equal moderator or admin
+      event.creatorEmail = auth.user.email
+      await event.save()
+    }
     const { cover } = await request.validate(CoverUploadValidator)
     event.cover = cover ? Attachment.fromFile(cover) : null
 
