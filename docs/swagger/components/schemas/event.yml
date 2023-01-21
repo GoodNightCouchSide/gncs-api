@@ -4,11 +4,25 @@ components:
       type: object
       required:
         - title
+        - date
+        - headliner
       properties:
         title:
           type: string
           example: Fake Test Event
           description: This Event name has to unique
+        date:
+          type: string
+          format: date-time
+          description: This is the Iso DateTime and says what day the event is and what time the doors open.
+        headliner:
+          type: string
+          example: Borders Down
+          description: This is the main act of the event.
+        support:
+          type: string
+          example: '["Support1", "Support Tow", "Support3"]'
+          description: This is a listing of all support bands. The array is passed as json stringify.
         description:
           type: string
           description: The Information for the Event
@@ -48,7 +62,7 @@ components:
             creator_email:
               type: string
               format: email
-              description: Is the creator (reference to User with email column) of this event and can not be changed.
+              description: Is the creator (reference to User with email column) of this event and can not be changed. Is null if a gust create this Event.
             is_public:
               type: boolean
               default: false
