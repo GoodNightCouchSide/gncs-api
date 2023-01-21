@@ -3,6 +3,7 @@ paths:
     get:
       tags:
         - Event
+      summary: Get All Events
       description: ''
       parameters: []
       responses:
@@ -11,7 +12,13 @@ paths:
     post:
       tags:
         - Event
-      description: Create a new Event
+      summary: Create a new Event
+      description: 
+        With this card you can create a new event.
+        If the user is already registered and gives a sign in token,
+        the user is saved as the creator in the event (creator_email).
+      security:
+        - bearerAuth: []
       requestBody:
         $ref: '#/components/requestBodies/createEventBody'
       responses:
@@ -27,6 +34,9 @@ paths:
                     example: true
                   Event:
                     $ref: '#/components/schemas/Event'
+          links:
+            GetEventByEventId:
+              $ref: '#/components/links/GetEventByEventId'
   
   /_api/events/upload:
     post:
@@ -53,19 +63,21 @@ paths:
                   cover:
                     type: strings
 
-  /api/events/{id}:
+  /api/events/{eventId}:
     get:
       tags:
         - Event
+      summary: Get Event by ID
       description: Get Event by ID
+      operationId: getEvent
       parameters:
         - in: path
-          name: id
+          name: eventId
           required: true
           schema:
-            type: number
+            type: string
+            format: uuid
           description: Event ID
-          example: 1
       responses:
         '200':
           description: Successful fetch a Event by ID
@@ -77,15 +89,16 @@ paths:
     patch:
       tags:
         - Event
+      summary: Update a Event by ID
       description: Update a Event by ID
       parameters:
         - in: path
-          name: id
+          name: eventId
           required: true
           schema:
-            type: number
+            type: string
+            format: uuid
           description: Event ID
-          example: 1
       requestBody:
         $ref: '#/components/requestBodies/createEventBody'
       responses:
@@ -99,10 +112,11 @@ paths:
     delete:
       tags:
         - Event
+      summary: Delate a Event by ID
       description: Delete a Event by ID
       parameters:
         - in: path
-          name: id
+          name: eventId
           required: true
           schema:
             type: string

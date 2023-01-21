@@ -1,0 +1,9 @@
+components:
+  links:
+    GetEventByEventId:
+      description: >
+        The `id` value returned in the response can be used as
+        the `eventId` parameter in `GET /event/{eventId}`.
+      operationId: getEvent
+      parameters:
+        eventId: $response.body#/Event/uuid
