@@ -4,6 +4,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import EventFactory from 'Database/factories/EventFactory'
 import VenueFactory from 'Database/factories/VenueFactory'
 import UserFactory from 'Database/factories/UserFactory'
+import Roles from 'App/Enums/Roles'
 
 test.group('Events', (group) => {
   // We use the Database global transactions to have a clean database state in-between tests.
@@ -267,16 +268,35 @@ test.group('Events', (group) => {
     assert.equal(response.body().event.create_email, createEmail)
   })
 
-  /**
-   * DELETE Events
-   */
-  test('delete an event', async ({ client, assert }) => {
+  test('delete an event with admin user', async ({ client, assert }) => {
+    await EventFactory.create()
+    const adminUser = await UserFactory.merge({ roleName: Roles.ADMIN }).create()
+    const allEvents = await client.get('/api/events')
+    const { id } = allEvents.body().events[0]
+
+    const response = await client.delete(`/api/events/${id}`).loginAs(adminUser)
+    assert.isTrue(response.body().success)
+    assert.notExists(response.body().event)
+  })
+
+  test('delete an event with moderator user', async ({ client, assert }) => {
+    await EventFactory.create()
+    const adminUser = await UserFactory.merge({ roleName: Roles.MODERATOR }).create()
+    const allEvents = await client.get('/api/events')
+    const { id } = allEvents.body().events[0]
+
+    const response = await client.delete(`/api/events/${id}`).loginAs(adminUser)
+    response.assertStatus(401)
+    assert.equal(response.body().errors[0].message, 'This is restricted to admin users')
+  })
+
+  test('delete an event without authentication', async ({ client, assert }) => {
     await EventFactory.create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 
     const response = await client.delete(`/api/events/${id}`).withCsrfToken()
-    assert.isTrue(response.body().success)
-    assert.notExists(response.body().event)
+    response.assertStatus(401)
+    assert.equal(response.body().errors[0].message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
   })
 })
