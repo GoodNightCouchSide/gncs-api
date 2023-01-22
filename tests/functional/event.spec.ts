@@ -94,10 +94,10 @@ test.group('Events', (group) => {
         box_office: '34',
         event_links: 'https://www.test-location.de',
         alternative_address: 'test',
-        creator_email: user.email,
         venue_id: venue.id,
       })
       .file('cover', eventCover.contents, { filename: eventCover.name })
+      .loginAs(user)
 
     // ASSERT
     assert.isTrue(response.body().success)
@@ -244,25 +244,21 @@ test.group('Events', (group) => {
     Drive.restore()
   })
 
-  // TODO: this does not work
-  // test('not allowed to override the event creator email', async ({ client, assert }) => {
-  //   await EventFactory.create()
-  //   const allEvents = await client.get('/_api/events')
-  //   const { id, createEmail } = allEvents.body().events[0]
-
-  //   const userRole = await Role.findByOrFail('name', roles.USER)
-  //   const creator = await UserFactory.merge({
-  //     roleId: userRole.id,
-  //   }).create()
-
-  //   const requestBody = {
-  //     creator_email: creator.email,
-  //   }
-  //   const response = await client.put(`/_api/events/${id}`).withCsrfToken().json(requestBody)
-
-  //   assert.isTrue(response.body().success)
-  //   assert.equal(response.body().event.create_email, createEmail)
-  // })
+  test('create an Event with Authorization and set creatorEmail field', async ({
+    client,
+    assert,
+  }) => {
+    const user = await UserFactory.create()
+    const response = await client
+      .post('/api/events')
+      .json({
+        title: 'testEvent',
+      })
+      .withCsrfToken()
+      .loginAs(user)
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.creator_email, user.email)
+  })
 
   /*
    * DELETE Events
