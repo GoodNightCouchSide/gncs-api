@@ -1,4 +1,4 @@
-omponents:
+components:
   requestBodies:
     userLoginBody:
       content:

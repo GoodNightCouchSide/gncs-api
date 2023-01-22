@@ -1,0 +1,12 @@
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      in: header
+      scheme: bearer
+      bearerFormat: JWT
+      description: 
+        Enter the token without Bearer prefix, the prefix will be added automatically.
+
+security:
+  - bearerAuth: [] 

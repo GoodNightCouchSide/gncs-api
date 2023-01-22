@@ -18,3 +18,9 @@ components:
                       message:
                         type: string
                         example: 'E_UNAUTHORIZED_ACCESS: Unauthorized access'
+                  - type: object
+                    description: User role are not allowed for this resource
+                    properties:
+                      message:
+                        type: string
+                        example: "This is restricted to admin users"
