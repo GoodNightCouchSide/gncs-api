@@ -1,0 +1,20 @@
+components:
+  responses:
+    Unauthorized:
+      description: Not allowed
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiError'
+            properties:
+              errors:
+                type: array
+                items:
+                  oneOf:
+                  - type: object
+                    description: User are not allowed for this resource
+                    properties:
+                      message:
+                        type: string
+                        example: 'E_UNAUTHORIZED_ACCESS: Unauthorized access'

@@ -6,6 +6,7 @@ Route.group(() => {
   Route.group(() => {
     Route.post('/login', 'AuthController.login')
     Route.post('/register', 'AuthController.register')
+    Route.post('/logout', 'AuthController.logout').middleware('auth:api')
   }).prefix('auth')
 
   Route.resource('events', 'EventsController').apiOnly()
