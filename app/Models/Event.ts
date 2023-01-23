@@ -14,13 +14,13 @@ export default class Event extends BaseModel {
   public headliner: string
 
   @column()
-  public support?: string
+  public support: string
 
   @column()
   public date: DateTime
 
   @column()
-  public description?: string
+  public description: string
 
   @column()
   public cover: string
