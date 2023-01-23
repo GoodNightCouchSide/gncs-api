@@ -117,21 +117,22 @@ test.group('Events', (group) => {
   })
 
   test('create basic event with only required fields', async ({ client, assert }) => {
-    const response = await client.post('/api/events').json({
+    const body = {
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
-    })
+    }
+    const response = await client.post('/api/events').json(body)
     assert.isTrue(response.body().success)
-    assert.onlyProperties(response.body().event, [
-      'id',
-      'title',
-      'date',
-      'headliner',
-      'is_public',
-      'created_at',
-      'updated_at',
-    ])
+    Object.keys(body).map((key) => {
+      if (key === 'date') {
+        return assert.equal(
+          new Date(response.body().event[key]).toISOString,
+          new Date(body[key]).toISOString
+        )
+      }
+      assert.propertyVal(response.body().event, key, body[key])
+    })
   })
 
   test('create an event without title', async ({ client, assert }) => {
