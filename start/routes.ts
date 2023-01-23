@@ -30,6 +30,8 @@ Route.group(() => {
     })
     .apiOnly()
 
+  Route.resource('artists', 'ArtistsController').apiOnly()
+
   Route.get('/health', async ({ response }: HttpContextContract) => {
     const report = await HealthCheck.getReport()
     return report.healthy ? response.ok(report) : response.badRequest(report)

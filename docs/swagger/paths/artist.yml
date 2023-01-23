@@ -1,0 +1,22 @@
+paths:
+  /api/artists:
+    get:
+      tags:
+        - Artist
+      summary: Get all Artist
+      description: 'Get all Artist'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  artists:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artist'
