@@ -8,7 +8,7 @@ export default Factory.define(Event, ({ faker }: any) => {
   const support = new Array(5).fill(null).map(() => faker.random.word())
   return {
     title: faker.random.word(),
-    date: faker.date.between(dateFrom.toISOString(), dateTo.toISOString()),
+    date: faker.date.between(dateFrom, dateTo).toISOString(),
     headliner: faker.random.word(),
     support: JSON.stringify(support),
     description: faker.random.word(),

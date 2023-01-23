@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.alterTable(this.tableName, (table) => {
       table.string('headliner').notNullable()
       table.string('support')
-      table.string('date').notNullable()
+      table.timestamp('date', { useTz: true }).notNullable()
     })
   }
 
