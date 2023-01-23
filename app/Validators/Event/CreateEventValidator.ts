@@ -15,17 +15,15 @@ export default class CreateEventValidator {
       rules.email(),
       rules.exists({ table: 'users', column: 'email' }),
     ]),
-    venue_id: schema.string.optional([
-      rules.uuid(),
-      rules.exists({ table: 'venues', column: 'id' }),
-    ]),
+    venue_id: schema.string.optional([rules.exists({ table: 'venues', column: 'id' })]),
     links: schema.string.optional(),
   })
 
   public messages: CustomMessages = {
-    '*': (field, rule) => {
-      return `${rule} validation error on ${field}`
-    },
     'title.required': 'title is required to create an event',
+    'title.unique': 'title already exists',
+    'venue_id.exists': 'Referenced venue does not exist',
+    'creator_email.email': 'Please enter a valid email address',
+    'creator_email.exists': 'Referenced user does not exist',
   }
 }
