@@ -83,7 +83,7 @@ test.group('Events', (group) => {
     const venue = await VenueFactory.create()
     const user = await UserFactory.create()
 
-    const response = await client.post('/api/events').json({
+    const response = await client.post('/api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Super nice Band',
@@ -122,7 +122,7 @@ test.group('Events', (group) => {
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
-    const response = await client.post('/api/events').json(body)
+    const response = await client.post('/api/events').withCsrfToken().json(body)
     assert.isTrue(response.body().success)
     Object.keys(body).map((key) => {
       if (key === 'date') {
@@ -136,7 +136,7 @@ test.group('Events', (group) => {
   })
 
   test('create an event without title', async ({ client, assert }) => {
-    const response = await client.post('/api/events').json({
+    const response = await client.post('/api/events').withCsrfToken().json({
       description: 'test event description',
     })
 
@@ -150,8 +150,8 @@ test.group('Events', (group) => {
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
     }
-    const response1 = await client.post('/api/events').json(eventBody)
-    const response2 = await client.post('/api/events').json(eventBody)
+    const response1 = await client.post('/api/events').withCsrfToken().json(eventBody)
+    const response2 = await client.post('/api/events').withCsrfToken().json(eventBody)
 
     assert.isTrue(response1.body().success)
     assert.equal(response2.status(), 422)
@@ -159,7 +159,7 @@ test.group('Events', (group) => {
   })
 
   test('create an event with wrong venue reference', async ({ client, assert }) => {
-    const response = await client.post('/api/events').json({
+    const response = await client.post('/api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
@@ -171,7 +171,7 @@ test.group('Events', (group) => {
   })
 
   test('create an event with wrong creator reference', async ({ client, assert }) => {
-    const response = await client.post('/api/events').json({
+    const response = await client.post('/api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
@@ -183,7 +183,7 @@ test.group('Events', (group) => {
   })
 
   test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
-    const response = await client.post('/api/events').json({
+    const response = await client.post('/api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
@@ -201,7 +201,7 @@ test.group('Events', (group) => {
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.put(`/api/events/${id}`).json({
+    const response = await client.put(`/api/events/${id}`).withCsrfToken().json({
       title: 'This is a brand new title',
     })
     assert.isTrue(response.body().success)
@@ -213,7 +213,7 @@ test.group('Events', (group) => {
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.put(`/api/events/${id}`).json({
+    const response = await client.put(`/api/events/${id}`).withCsrfToken().json({
       description: 'This is a brand new description',
     })
     assert.isTrue(response.body().success)
@@ -240,7 +240,7 @@ test.group('Events', (group) => {
       is_public: false,
       venue_id: venue.id,
     }
-    const response = await client.put(`/api/events/${id}`).json(requestBody)
+    const response = await client.put(`/api/events/${id}`).withCsrfToken().json(requestBody)
     assert.isTrue(response.body().success)
     Object.keys(requestBody).forEach((key) => {
       if (key === 'date') {
@@ -262,7 +262,7 @@ test.group('Events', (group) => {
     const requestBody = {
       creator_email: creator.email,
     }
-    const response = await client.put(`/api/events/${id}`).json(requestBody)
+    const response = await client.put(`/api/events/${id}`).withCsrfToken().json(requestBody)
     assert.isTrue(response.body().success)
     assert.equal(response.body().event.create_email, createEmail)
   })
@@ -275,7 +275,7 @@ test.group('Events', (group) => {
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.delete(`/api/events/${id}`)
+    const response = await client.delete(`/api/events/${id}`).withCsrfToken()
     assert.isTrue(response.body().success)
     assert.notExists(response.body().event)
   })

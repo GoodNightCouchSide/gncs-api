@@ -64,7 +64,7 @@ test.group('Venues', (group) => {
    * CREATE
    */
   test('create an venue with all allowed fields', async ({ client, assert }) => {
-    const response = await client.post('/api/venues').json({
+    const response = await client.post('/api/venues').withCsrfToken().json({
       name: 'Venue',
       description: 'Description of a Venue',
       street: 'Musterstraße',
@@ -88,7 +88,7 @@ test.group('Venues', (group) => {
   })
 
   test('create an venue with an too long zip', async ({ client, assert }) => {
-    const response = await client.post('/api/venues').json({
+    const response = await client.post('/api/venues').withCsrfToken().json({
       name: 'Invalid Venue',
       description: 'Description of a Venue',
       street: 'Musterstraße',
@@ -101,9 +101,9 @@ test.group('Venues', (group) => {
     assert.isUndefined(response.body().success)
   })
 
-  /*
-   * UPDATE
-   */
+  // /*
+  //  * UPDATE
+  //  */
   test('update a venue completely', async ({ client, assert }) => {
     const allVenues = await client.get('/api/venues')
     const venue = allVenues.body().venues[0]
@@ -118,11 +118,14 @@ test.group('Venues', (group) => {
       url: 'www.rocko.com',
     }
 
-    const response = await client.put(`/api/venues/${venue.id}`).json({
-      ...newValues,
-      streetNumber: newValues.street_number,
-      postCode: newValues.post_code,
-    })
+    const response = await client
+      .put(`/api/venues/${venue.id}`)
+      .withCsrfToken()
+      .json({
+        ...newValues,
+        streetNumber: newValues.street_number,
+        postCode: newValues.post_code,
+      })
     const updatedVenue = response.body().venue
 
     assert.isTrue(response.body().success)
@@ -133,7 +136,7 @@ test.group('Venues', (group) => {
     const allVenues = await client.get('/api/venues')
     const venue = allVenues.body().venues[0]
 
-    const response = await client.put(`/api/venues/${venue.id}`).json({
+    const response = await client.put(`/api/venues/${venue.id}`).withCsrfToken().json({
       description: 'This is an updated description',
     })
 
@@ -148,7 +151,7 @@ test.group('Venues', (group) => {
     const allVenues = await client.get('/api/venues')
     const venue = allVenues.body().venues[0]
 
-    const response = await client.put(`/api/venues/${venue.id}`).json({
+    const response = await client.put(`/api/venues/${venue.id}`).withCsrfToken().json({
       postCode: '123',
     })
 
@@ -159,14 +162,14 @@ test.group('Venues', (group) => {
     assert.isUndefined(response.body().success)
   })
 
-  /*
-   * DELETE
-   */
+  // /*
+  //  * DELETE
+  //  */
   test('delete an event', async ({ client, assert }) => {
     const allVenues = await client.get('/api/venues')
     const { id } = allVenues.body().venues[0]
 
-    const response = await client.delete(`/api/venues/${id}`)
+    const response = await client.delete(`/api/venues/${id}`).withCsrfToken()
     assert.isTrue(response.body().success)
     assert.notExists(response.body().venue)
   })

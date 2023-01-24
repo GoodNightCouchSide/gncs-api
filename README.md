@@ -35,7 +35,8 @@ Start the app with
 AdonisJS uses [Japa](https://japa.dev/) for writing and executing tests. So we do.
 
 Make sure you've created a database called `gncs_test`.
-Update the file `.env.test` [See documentation`](https://docs.adonisjs.com/guides/testing/introduction#environment-variables) and add the `PSQL_` values to use the test database
+Update the file `.env.test` [See documentation`](https://docs.adonisjs.com/guides/testing/introduction#environment-variables) and add the `PSQL_` values to use the test database.
+Make sure you have set the `SESSION_DRIVER` to `memory`. `SESSION_DRIVER` is switched to persist session data within memory and access it during tests. Using any other driver will break the tests.
 
 
 Run `npm run test` to run the tests.
