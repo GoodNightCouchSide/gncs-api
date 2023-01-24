@@ -1,13 +1,6 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
-import {
-  column,
-  beforeSave,
-  BaseModel,
-  belongsTo,
-  BelongsTo,
-  computed,
-} from '@ioc:Adonis/Lucid/Orm'
+import { column, beforeSave, BaseModel, computed, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import Roles from 'App/Enums/Roles'
 import Role from './Role'
 
@@ -48,8 +41,8 @@ export default class User extends BaseModel {
     }
   }
 
-  @belongsTo(() => Role, {
+  @hasOne(() => Role, {
     foreignKey: 'name',
   })
-  public role: BelongsTo<typeof Role>
+  public role: HasOne<typeof Role>
 }
