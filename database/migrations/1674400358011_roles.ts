@@ -8,6 +8,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.string('name').primary()
     })
+    // use the defer method to create default user roles
     this.defer(async (db) => {
       await db
         .table(this.tableName)
