@@ -12,6 +12,7 @@ export default class UpdateVenueValidator {
     postCode: schema.string.optional([rules.minLength(5), rules.maxLength(5), rules.trim()]),
     city: schema.string.optional({ trim: true }),
     url: schema.string.optional([rules.url(), rules.trim()]),
+    capacity: schema.number.optional(),
   })
 
   public messages: CustomMessages = {
