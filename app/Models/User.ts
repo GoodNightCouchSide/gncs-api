@@ -12,10 +12,10 @@ export default class User extends BaseModel {
   public email: string
 
   @column()
-  public username: string
+  public name: string
 
   @column()
-  public roleName: Roles
+  public roleId: string
 
   @column({ serializeAs: null })
   public password: string
@@ -31,7 +31,7 @@ export default class User extends BaseModel {
 
   @computed()
   public get isAdmin() {
-    return this.roleName === Roles.ADMIN
+    return this.role.name === Roles.ADMIN
   }
 
   @beforeSave()
@@ -42,7 +42,7 @@ export default class User extends BaseModel {
   }
 
   @hasOne(() => Role, {
-    foreignKey: 'name',
+    foreignKey: 'id',
   })
   public role: HasOne<typeof Role>
 }

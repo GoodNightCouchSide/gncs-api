@@ -5,14 +5,14 @@ export default class RegisterValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    username: schema.string([rules.unique({ table: 'users', column: 'username' })]),
+    name: schema.string([rules.unique({ table: 'users', column: 'name' })]),
     email: schema.string([rules.email(), rules.unique({ table: 'users', column: 'email' })]),
     password: schema.string([rules.minLength(8)]),
   })
 
   public messages: CustomMessages = {
-    'username.required': 'Der Benutzername muss angegeben werden',
-    'username.unique': 'Der Benutzername wird bereits benutzt',
+    'username.required': 'Der Name muss angegeben werden',
+    'username.unique': 'Der Name wird bereits benutzt',
     'email.required': 'Die Email Adresse muss angegeben werden',
     'email.unique': 'Die Email Adresse ist nicht mehr verfügbar',
     'password.required': 'Das Password muss angegeben werden',

@@ -5,6 +5,7 @@ import EventFactory from 'Database/factories/EventFactory'
 import VenueFactory from 'Database/factories/VenueFactory'
 import UserFactory from 'Database/factories/UserFactory'
 import Roles from 'App/Enums/Roles'
+import Role from 'App/Models/Role'
 
 test.group('Events', (group) => {
   // We use the Database global transactions to have a clean database state in-between tests.
@@ -82,7 +83,9 @@ test.group('Events', (group) => {
    */
   test('create an event with all allowed fields', async ({ client, assert }) => {
     const venue = await VenueFactory.create()
-    const user = await UserFactory.create()
+    const user = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', Roles.USER)).id,
+    }).create()
 
     const response = await client.post('/api/events').withCsrfToken().json({
       title: 'testEvent',
@@ -258,7 +261,9 @@ test.group('Events', (group) => {
     const allEvents = await client.get('/api/events')
     const { id, createEmail } = allEvents.body().events[0]
 
-    const creator = await UserFactory.create()
+    const creator = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', Roles.ADMIN)).id,
+    }).create()
 
     const requestBody = {
       creator_email: creator.email,
@@ -270,7 +275,9 @@ test.group('Events', (group) => {
 
   test('delete an event with admin user', async ({ client, assert }) => {
     await EventFactory.create()
-    const adminUser = await UserFactory.merge({ roleName: Roles.ADMIN }).create()
+    const adminUser = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', Roles.ADMIN)).id,
+    }).create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 
@@ -281,7 +288,9 @@ test.group('Events', (group) => {
 
   test('delete an event with moderator user', async ({ client, assert }) => {
     await EventFactory.create()
-    const adminUser = await UserFactory.merge({ roleName: Roles.MODERATOR }).create()
+    const adminUser = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', Roles.MODERATOR)).id,
+    }).create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 

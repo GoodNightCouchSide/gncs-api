@@ -14,15 +14,12 @@ components:
           format: email
         password:
           type: string
-        roleName:
+        role_id:
           type: string
-          enum:
-            - user
-            - moderator
-            - admin
+          format: uuid
           default: user
           description: The user role defines the rights for the api.
-        username:
+        name:
           type: string
           description: This is for display public the user name and has to unique.
           example: Username
