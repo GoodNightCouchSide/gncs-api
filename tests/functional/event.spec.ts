@@ -194,7 +194,52 @@ test.group('Events', (group) => {
     })
 
     assert.equal(response.status(), 422)
-    assert.equal(response.body().message.errors[0].message, 'Referenced venue does not exist')
+    assert.equal(response.body().messages.errors[0].message, 'Referenced venue does not exist')
+  })
+
+  test('create an Event with Authorization and set creatorEmail field', async ({
+    client,
+    assert,
+  }) => {
+    const user = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', roles.USER)).id,
+    }).create()
+    const body = {
+      title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
+    }
+    const response = await client.post('/api/events').json(body).withCsrfToken().loginAs(user)
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.creator_email, user.email)
+  })
+
+  test('create an event as moderator that is automatic public', async ({ client, assert }) => {
+    const body = {
+      title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
+    }
+    const user = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', roles.MODERATOR)).id,
+    }).create()
+    const response = await client.post('/api/events').withCsrfToken().loginAs(user).json(body)
+    assert.isTrue(response.body().success)
+    assert.isTrue(response.body().event.is_public)
+  })
+
+  test('create an event as admin that is automatic public', async ({ client, assert }) => {
+    const body = {
+      title: 'testEvent',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
+    }
+    const user = await UserFactory.merge({
+      roleId: (await Role.findByOrFail('name', roles.ADMIN)).id,
+    }).create()
+    const response = await client.post('/api/events').withCsrfToken().loginAs(user).json(body)
+    assert.isTrue(response.body().success)
+    assert.isTrue(response.body().event.is_public)
   })
 
   /*

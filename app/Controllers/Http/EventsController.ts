@@ -2,6 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { Attachment } from '@ioc:Adonis/Addons/AttachmentLite'
 
 import Event from 'App/Models/Event'
+import Role from 'App/Models/Role'
 import CreateEventValidator from 'App/Validators/Event/CreateEventValidator'
 import CoverUploadValidator from 'App/Validators/Event/CoverUploadValidator'
 import UpdateEventValidator from 'App/Validators/Event/UpdateEventValidator'
@@ -24,7 +25,7 @@ export default class EventsController {
     const payload = await request.validate(CreateEventValidator)
     const event = await Event.create(payload)
     if (auth.user) {
-      // TODO set is_public if user.role equal moderator or admin
+      event.isPublic = await Role.isAllowedToPublishContent(auth.user.roleId)
       event.creatorEmail = auth.user.email
       await event.save()
     }
