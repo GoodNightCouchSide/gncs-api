@@ -9,19 +9,19 @@ export default class Artist extends BaseModel {
   public name: string
 
   @column()
-  public genre: string
+  public genre: string[]
 
   @column()
   public description: string
 
   @column()
-  public links: string
+  public links: string[]
 
   @column()
   public logo: string
 
   @column()
-  public members: string
+  public members: string[]
 
   @column()
   public musicLabel: string

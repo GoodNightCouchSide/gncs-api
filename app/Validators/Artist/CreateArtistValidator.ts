@@ -5,16 +5,17 @@ export default class CreateArtistValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    name: schema.string([rules.unique({ table: 'artist', column: 'name' })]),
-    genre: schema.string(),
+    name: schema.string(),
+    genre: schema.array([rules.minLength(1)]).members(schema.string()),
     description: schema.string.optional(),
-    links: schema.string.optional(),
+    links: schema.array().members(schema.string()),
     logo: schema.string.optional([rules.url()]),
-    members: schema.string.optional(),
-    musicLabel: schema.string.optional(),
+    members: schema.array().members(schema.string()),
+    music_label: schema.string.optional(),
   })
 
   public messages: CustomMessages = {
-    'name.required': 'Name of the Artist is required to create a new Artist',
+    'name.required': 'Der Name des Artist angegeben werden.',
+    'genre.required': 'Es muss mindestens ein Genre angegeben werden.',
   }
 }
