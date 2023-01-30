@@ -15,7 +15,7 @@ If not:
 
 Create a new `.env` file copying from the `.env.example` file and update the `PSQL_X` values
 
-To test, if the database is connected to the server and healthy, check [http://127.0.0.1:3333/api/health](http://127.0.0.1:3333/api/health)
+To test, if the database is connected to the server and healthy, check [http://127.0.0.1:3333/_api/health](http://127.0.0.1:3333/_api/health)
 
 ### Start server
 Run installation `npm install`.
