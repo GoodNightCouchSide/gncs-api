@@ -8,11 +8,21 @@ components:
       properties:
         uuid:
           type: string
+          format: uuid
         email:
           type: string
           format: email
         password:
           type: string
+        role_id:
+          type: string
+          format: uuid
+          default: user
+          description: The user role defines the rights for the api.
+        name:
+          type: string
+          description: This is for display public the user name and has to unique.
+          example: Username
         remember_me_token:
           type: string
         created_at:

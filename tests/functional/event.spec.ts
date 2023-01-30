@@ -4,6 +4,8 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import EventFactory from 'Database/factories/EventFactory'
 import VenueFactory from 'Database/factories/VenueFactory'
 import UserFactory from 'Database/factories/UserFactory'
+import roles from 'App/constants/roles'
+import Role from 'App/Models/Role'
 
 test.group('Events', (group) => {
   // We use the Database global transactions to have a clean database state in-between tests.
@@ -81,7 +83,10 @@ test.group('Events', (group) => {
    */
   test('create an event with all allowed fields', async ({ client, assert }) => {
     const venue = await VenueFactory.create()
-    const user = await UserFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.USER)
+    const user = await UserFactory.merge({
+      roleId: userRole.id,
+    }).create()
 
     const response = await client.post('/api/events').withCsrfToken().json({
       title: 'testEvent',
@@ -257,7 +262,10 @@ test.group('Events', (group) => {
     const allEvents = await client.get('/api/events')
     const { id, createEmail } = allEvents.body().events[0]
 
-    const creator = await UserFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.ADMIN)
+    const creator = await UserFactory.merge({
+      roleId: userRole.id,
+    }).create()
 
     const requestBody = {
       creator_email: creator.email,
@@ -267,16 +275,41 @@ test.group('Events', (group) => {
     assert.equal(response.body().event.create_email, createEmail)
   })
 
-  /**
-   * DELETE Events
-   */
-  test('delete an event', async ({ client, assert }) => {
+  test('delete an event with admin user', async ({ client, assert }) => {
+    await EventFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.ADMIN)
+    const adminUser = await UserFactory.merge({
+      roleId: userRole.id,
+    }).create()
+    const allEvents = await client.get('/api/events')
+    const { id } = allEvents.body().events[0]
+
+    const response = await client.delete(`/api/events/${id}`).withCsrfToken().loginAs(adminUser)
+    assert.isTrue(response.body().success)
+    assert.notExists(response.body().event)
+  })
+
+  test('delete an event with moderator user', async ({ client, assert }) => {
+    await EventFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.MODERATOR)
+    const adminUser = await UserFactory.merge({
+      roleId: userRole.id,
+    }).create()
+    const allEvents = await client.get('/api/events')
+    const { id } = allEvents.body().events[0]
+
+    const response = await client.delete(`/api/events/${id}`).withCsrfToken().loginAs(adminUser)
+    response.assertStatus(403)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
+  })
+
+  test('delete an event without authentication', async ({ client, assert }) => {
     await EventFactory.create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
 
     const response = await client.delete(`/api/events/${id}`).withCsrfToken()
-    assert.isTrue(response.body().success)
-    assert.notExists(response.body().event)
+    response.assertStatus(401)
+    assert.equal(response.body().errors[0].message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
   })
 })

@@ -28,3 +28,26 @@ paths:
       responses:
         '200':
           description: OK
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout the current user.
+      description: Remove the given token from the database.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful logout user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+

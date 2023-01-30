@@ -80,9 +80,13 @@ paths:
           name: id
           required: true
           schema:
-            type: number
-          description: Event ID
-          example: 1
+            type: string
+            format: uuid
+          description: Event uuid
+      security:
+        - bearerAuth: []
       responses:
         '204':
           description: Delete Event successful.
+        '401':
+            $ref: '#/components/responses/Unauthorized'

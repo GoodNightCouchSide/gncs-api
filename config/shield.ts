@@ -1,3 +1,5 @@
+import Env from '@ioc:Adonis/Core/Env'
+
 /**
  * Config source: https://git.io/Jvwvt
  *
@@ -72,7 +74,7 @@ export const csrf: ShieldConfig['csrf'] = {
   | Enable/Disable CSRF
   |--------------------------------------------------------------------------
   */
-  enabled: true,
+  enabled: Env.get('NODE_ENV') === 'development' ? false : true,
 
   /*
   |--------------------------------------------------------------------------
