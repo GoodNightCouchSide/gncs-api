@@ -101,9 +101,9 @@ test.group('Venues', (group) => {
     assert.isUndefined(response.body().success)
   })
 
-  // /*
-  //  * UPDATE
-  //  */
+  /*
+   * UPDATE
+   */
   test('update a venue completely', async ({ client, assert }) => {
     const allVenues = await client.get('/api/venues')
     const venue = allVenues.body().venues[0]
@@ -116,6 +116,7 @@ test.group('Venues', (group) => {
       post_code: '67890',
       city: 'Bubblegum',
       url: 'www.rocko.com',
+      capacity: 333,
     }
 
     const response = await client
@@ -162,9 +163,9 @@ test.group('Venues', (group) => {
     assert.isUndefined(response.body().success)
   })
 
-  // /*
-  //  * DELETE
-  //  */
+  /*
+   * DELETE
+   */
   test('delete an event', async ({ client, assert }) => {
     const allVenues = await client.get('/api/venues')
     const { id } = allVenues.body().venues[0]

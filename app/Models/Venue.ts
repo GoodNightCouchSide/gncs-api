@@ -26,6 +26,9 @@ export default class Venue extends BaseModel {
   @column()
   public url: string
 
+  @column()
+  public capacity: number
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

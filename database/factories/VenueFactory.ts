@@ -9,5 +9,7 @@ export default Factory.define(Venue, ({ faker }) => {
     streetNumber: String(faker.random.numeric(2)),
     postCode: String(faker.random.numeric(5)),
     city: faker.address.city(),
+    url: faker.internet.url(),
+    capacity: faker.datatype.number(333),
   }
 }).build()

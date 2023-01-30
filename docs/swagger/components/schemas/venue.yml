@@ -38,6 +38,10 @@ components:
           type: string
           description: url of website or facebook or whatever
           example: http://www.a-supercool-venue.com
+        capacity:
+          type: number
+          description: How many people are allowed to be in this location
+          example: 700
         created_at:
           type: string
           format: date-time
