@@ -27,13 +27,9 @@ export default class ArtistsController {
    * @param {HttpContextContract} ctx Http contest Contract
    */
   public async store({ request, response }: HttpContextContract) {
-    try {
-      const payload = await request.validate(CreateArtistValidator)
-      const artist = await Artist.create(payload)
-      response.json({ success: true, artist })
-    } catch (error) {
-      response.badRequest(error)
-    }
+    const payload = await request.validate(CreateArtistValidator)
+    const artist = await Artist.create(payload)
+    response.json({ success: true, artist })
   }
 
   /**
