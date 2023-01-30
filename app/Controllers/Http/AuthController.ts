@@ -30,7 +30,6 @@ export default class AuthController {
       response.json({ success: true, user, token })
     } catch (error) {
       // TODO add message or some redirect
-      console.log(error)
       response.json({ success: false })
     }
   }
