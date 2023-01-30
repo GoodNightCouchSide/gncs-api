@@ -248,7 +248,10 @@ test.group('Events', (group) => {
     client,
     assert,
   }) => {
-    const user = await UserFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.USER)
+    const user = await UserFactory.merge({
+      roleId: userRole.id,
+    }).create()
     const response = await client
       .post('/api/events')
       .json({
