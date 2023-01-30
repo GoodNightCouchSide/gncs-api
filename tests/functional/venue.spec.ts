@@ -15,7 +15,7 @@ test.group('Venues', (group) => {
    * READ
    */
   test('get a list of venues', async ({ client, assert }) => {
-    const response = await client.get('/api/venues')
+    const response = await client.get('/_api/venues')
     const venues = response.body().venues
 
     response.assertStatus(200)
@@ -35,10 +35,10 @@ test.group('Venues', (group) => {
   })
 
   test('get one venue', async ({ client, assert }) => {
-    const allVenues = await client.get('/api/venues')
+    const allVenues = await client.get('/_api/venues')
     const { id } = allVenues.body().venues[0]
 
-    const venueResponse = await client.get(`/api/venues/${id}`)
+    const venueResponse = await client.get(`/_api/venues/${id}`)
     venueResponse.assertStatus(200)
     assert.isTrue(venueResponse.body().success)
 
@@ -56,7 +56,7 @@ test.group('Venues', (group) => {
   })
 
   test('get a non-existing venue', async ({ client }) => {
-    const venueResponse = await client.get('/api/venues/e25264cc-7a89-420d-bb74-23c4162b3616')
+    const venueResponse = await client.get('/_api/venues/e25264cc-7a89-420d-bb74-23c4162b3616')
     venueResponse.assertStatus(404)
   })
 
@@ -64,7 +64,7 @@ test.group('Venues', (group) => {
    * CREATE
    */
   test('create an venue with all allowed fields', async ({ client, assert }) => {
-    const response = await client.post('/api/venues').withCsrfToken().json({
+    const response = await client.post('/_api/venues').withCsrfToken().json({
       name: 'Venue',
       description: 'Description of a Venue',
       street: 'Musterstraße',
@@ -88,7 +88,7 @@ test.group('Venues', (group) => {
   })
 
   test('create an venue with an too long zip', async ({ client, assert }) => {
-    const response = await client.post('/api/venues').withCsrfToken().json({
+    const response = await client.post('/_api/venues').withCsrfToken().json({
       name: 'Invalid Venue',
       description: 'Description of a Venue',
       street: 'Musterstraße',
@@ -97,15 +97,18 @@ test.group('Venues', (group) => {
       city: 'Berlin',
     })
 
-    assert.equal(response.body().errors[0].message, 'Die Postleitzahl darf nur 5 Zeichen haben')
-    assert.isUndefined(response.body().success)
+    assert.equal(
+      response.body().message.errors[0].message,
+      'Die Postleitzahl darf nur 5 Zeichen haben'
+    )
+    assert.isFalse(response.body().success)
   })
 
   /*
    * UPDATE
    */
   test('update a venue completely', async ({ client, assert }) => {
-    const allVenues = await client.get('/api/venues')
+    const allVenues = await client.get('/_api/venues')
     const venue = allVenues.body().venues[0]
 
     const newValues = {
@@ -120,7 +123,7 @@ test.group('Venues', (group) => {
     }
 
     const response = await client
-      .put(`/api/venues/${venue.id}`)
+      .put(`/_api/venues/${venue.id}`)
       .withCsrfToken()
       .json({
         ...newValues,
@@ -134,10 +137,10 @@ test.group('Venues', (group) => {
   })
 
   test('update one field of a venue', async ({ client, assert }) => {
-    const allVenues = await client.get('/api/venues')
+    const allVenues = await client.get('/_api/venues')
     const venue = allVenues.body().venues[0]
 
-    const response = await client.put(`/api/venues/${venue.id}`).withCsrfToken().json({
+    const response = await client.put(`/_api/venues/${venue.id}`).withCsrfToken().json({
       description: 'This is an updated description',
     })
 
@@ -149,28 +152,28 @@ test.group('Venues', (group) => {
   })
 
   test('update an venue with an too short zip', async ({ client, assert }) => {
-    const allVenues = await client.get('/api/venues')
+    const allVenues = await client.get('/_api/venues')
     const venue = allVenues.body().venues[0]
 
-    const response = await client.put(`/api/venues/${venue.id}`).withCsrfToken().json({
+    const response = await client.put(`/_api/venues/${venue.id}`).withCsrfToken().json({
       postCode: '123',
     })
 
     assert.equal(
-      response.body().errors[0].message,
+      response.body().message.errors[0].message,
       'Die Postleitzahl muss aus mindestens 5 Zeichen bestehen'
     )
-    assert.isUndefined(response.body().success)
+    assert.isFalse(response.body().success)
   })
 
   /*
    * DELETE
    */
   test('delete an event', async ({ client, assert }) => {
-    const allVenues = await client.get('/api/venues')
+    const allVenues = await client.get('/_api/venues')
     const { id } = allVenues.body().venues[0]
 
-    const response = await client.delete(`/api/venues/${id}`).withCsrfToken()
+    const response = await client.delete(`/_api/venues/${id}`).withCsrfToken()
     assert.isTrue(response.body().success)
     assert.notExists(response.body().venue)
   })

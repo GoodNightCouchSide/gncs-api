@@ -20,4 +20,4 @@ Route.group(() => {
     const report = await HealthCheck.getReport()
     return report.healthy ? response.ok(report) : response.badRequest(report)
   })
-}).prefix('api')
+}).prefix('_api')

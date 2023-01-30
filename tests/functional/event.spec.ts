@@ -19,7 +19,7 @@ test.group('Events', (group) => {
    * GET Events
    */
   test('get a list of events', async ({ client, assert }) => {
-    const response = await client.get('/api/events')
+    const response = await client.get('/_api/events')
     response.assertStatus(200)
     assert.isTrue(response.body().success)
 
@@ -46,10 +46,10 @@ test.group('Events', (group) => {
   })
 
   test('get one event', async ({ client, assert }) => {
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
 
-    const eventResponse = await client.get(`/api/events/${id}`)
+    const eventResponse = await client.get(`/_api/events/${id}`)
     eventResponse.assertStatus(200)
     assert.isTrue(eventResponse.body().success)
 
@@ -74,7 +74,7 @@ test.group('Events', (group) => {
   })
 
   test('get a non-existing event', async ({ client }) => {
-    const eventResponse = await client.get('/api/events/e25264cc-7a89-420d-bb74-23c4162b3616')
+    const eventResponse = await client.get('/_api/events/e25264cc-7a89-420d-bb74-23c4162b3616')
     eventResponse.assertStatus(404)
   })
 
@@ -88,7 +88,7 @@ test.group('Events', (group) => {
       roleId: userRole.id,
     }).create()
 
-    const response = await client.post('/api/events').withCsrfToken().json({
+    const response = await client.post('/_api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Super nice Band',
@@ -127,7 +127,7 @@ test.group('Events', (group) => {
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
-    const response = await client.post('/api/events').withCsrfToken().json(body)
+    const response = await client.post('/_api/events').withCsrfToken().json(body)
     assert.isTrue(response.body().success)
     Object.keys(body).map((key) => {
       if (key === 'date') {
@@ -141,12 +141,12 @@ test.group('Events', (group) => {
   })
 
   test('create an event without title', async ({ client, assert }) => {
-    const response = await client.post('/api/events').withCsrfToken().json({
+    const response = await client.post('/_api/events').withCsrfToken().json({
       description: 'test event description',
     })
 
     assert.equal(response.status(), 422)
-    assert.equal(response.body().errors[0].message, 'title is required to create an event')
+    assert.equal(response.body().message.errors[0].message, 'title is required to create an event')
   })
 
   test('create an event that title is not unique', async ({ client, assert }) => {
@@ -155,16 +155,16 @@ test.group('Events', (group) => {
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
     }
-    const response1 = await client.post('/api/events').withCsrfToken().json(eventBody)
-    const response2 = await client.post('/api/events').withCsrfToken().json(eventBody)
+    const response1 = await client.post('/_api/events').withCsrfToken().json(eventBody)
+    const response2 = await client.post('/_api/events').withCsrfToken().json(eventBody)
 
     assert.isTrue(response1.body().success)
     assert.equal(response2.status(), 422)
-    assert.equal(response2.body().errors[0].message, 'title already exists')
+    assert.equal(response2.body().message.errors[0].message, 'title already exists')
   })
 
-  test('create an event with wrong venue reference', async ({ client, assert }) => {
-    const response = await client.post('/api/events').withCsrfToken().json({
+  test('create an event with not existing venue reference', async ({ client, assert }) => {
+    const response = await client.post('/_api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
@@ -172,11 +172,11 @@ test.group('Events', (group) => {
     })
 
     assert.equal(response.status(), 422)
-    assert.equal(response.body().errors[0].message, 'Referenced venue does not exist')
+    assert.equal(response.body().message.errors[0].message, 'Referenced venue does not exist')
   })
 
   test('create an event with wrong creator reference', async ({ client, assert }) => {
-    const response = await client.post('/api/events').withCsrfToken().json({
+    const response = await client.post('/_api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
@@ -184,18 +184,18 @@ test.group('Events', (group) => {
     })
 
     assert.equal(response.status(), 422)
-    assert.equal(response.body().errors[0].message, 'Referenced user does not exist')
+    assert.equal(response.body().message.errors[0].message, 'Referenced user does not exist')
   })
 
   test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
-    const response = await client.post('/api/events').withCsrfToken().json({
+    const response = await client.post('/_api/events').withCsrfToken().json({
       title: 'testEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
       creator_email: 'NoValidEmailAddress',
     })
     assert.equal(response.status(), 422)
-    assert.equal(response.body().errors[0].message, 'Please enter a valid email address')
+    assert.equal(response.body().message.errors[0].message, 'Please enter a valid email address')
   })
 
   /**
@@ -203,10 +203,10 @@ test.group('Events', (group) => {
    */
   test('update only a event title', async ({ client, assert }) => {
     await EventFactory.create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.put(`/api/events/${id}`).withCsrfToken().json({
+    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json({
       title: 'This is a brand new title',
     })
     assert.isTrue(response.body().success)
@@ -215,10 +215,10 @@ test.group('Events', (group) => {
 
   test('update only a event description', async ({ client, assert }) => {
     await EventFactory.create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.put(`/api/events/${id}`).withCsrfToken().json({
+    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json({
       description: 'This is a brand new description',
     })
     assert.isTrue(response.body().success)
@@ -227,7 +227,7 @@ test.group('Events', (group) => {
 
   test('update the whole event', async ({ client, assert }) => {
     await EventFactory.create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
     const venue = await VenueFactory.create()
 
@@ -245,7 +245,7 @@ test.group('Events', (group) => {
       is_public: false,
       venue_id: venue.id,
     }
-    const response = await client.put(`/api/events/${id}`).withCsrfToken().json(requestBody)
+    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json(requestBody)
     assert.isTrue(response.body().success)
     Object.keys(requestBody).forEach((key) => {
       if (key === 'date') {
@@ -259,7 +259,7 @@ test.group('Events', (group) => {
 
   test('not allowed to override the event creator email', async ({ client, assert }) => {
     await EventFactory.create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id, createEmail } = allEvents.body().events[0]
 
     const userRole = await Role.findByOrFail('name', roles.ADMIN)
@@ -270,7 +270,7 @@ test.group('Events', (group) => {
     const requestBody = {
       creator_email: creator.email,
     }
-    const response = await client.put(`/api/events/${id}`).withCsrfToken().json(requestBody)
+    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json(requestBody)
     assert.isTrue(response.body().success)
     assert.equal(response.body().event.create_email, createEmail)
   })
@@ -281,10 +281,10 @@ test.group('Events', (group) => {
     const adminUser = await UserFactory.merge({
       roleId: userRole.id,
     }).create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.delete(`/api/events/${id}`).withCsrfToken().loginAs(adminUser)
+    const response = await client.delete(`/_api/events/${id}`).withCsrfToken().loginAs(adminUser)
     assert.isTrue(response.body().success)
     assert.notExists(response.body().event)
   })
@@ -295,21 +295,22 @@ test.group('Events', (group) => {
     const adminUser = await UserFactory.merge({
       roleId: userRole.id,
     }).create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.delete(`/api/events/${id}`).withCsrfToken().loginAs(adminUser)
+    const response = await client.delete(`/_api/events/${id}`).withCsrfToken().loginAs(adminUser)
     response.assertStatus(403)
     assert.equal(response.body().message, 'You are not authorized to perform this action')
   })
 
   test('delete an event without authentication', async ({ client, assert }) => {
     await EventFactory.create()
-    const allEvents = await client.get('/api/events')
+    const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
 
-    const response = await client.delete(`/api/events/${id}`).withCsrfToken()
-    response.assertStatus(401)
-    assert.equal(response.body().errors[0].message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
+    const response = await client.delete(`/_api/events/${id}`).withCsrfToken()
+    response.assertStatus(403)
+    assert.include(response.body().message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
+    assert.isFalse(response.body().success)
   })
 })
