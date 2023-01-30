@@ -295,8 +295,8 @@ test.group('Events', (group) => {
     const { id } = allEvents.body().events[0]
 
     const response = await client.delete(`/api/events/${id}`).withCsrfToken().loginAs(adminUser)
-    response.assertStatus(401)
-    assert.equal(response.body().errors[0].message, 'This is restricted to admin users')
+    response.assertStatus(403)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
   })
 
   test('delete an event without authentication', async ({ client, assert }) => {

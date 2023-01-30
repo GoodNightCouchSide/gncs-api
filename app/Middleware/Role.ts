@@ -5,16 +5,17 @@ export default class RoleMiddleware {
   public async handle(
     { response, auth }: HttpContextContract,
     next: () => Promise<void>,
-    guards: string[]
+    rolesWithPermissions: string[]
   ) {
-    if (auth.user && !guards.includes((await Role.findByOrFail('id', auth.user.roleId)).name)) {
-      const errors = [
-        {
-          message: `This is restricted to ${guards.join(', ')} users`,
-        },
-      ]
-      return response.unauthorized({ errors })
+    if (auth.user) {
+      const role = await Role.findBy('id', auth.user.roleId)
+      if (role && !rolesWithPermissions.includes(role.name)) {
+        return response.status(403).json({
+          success: false,
+          message: 'You are not authorized to perform this action',
+        })
+      }
+      return await next()
     }
-    await next()
   }
 }
