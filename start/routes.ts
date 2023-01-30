@@ -1,7 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import HealthCheck from '@ioc:Adonis/Core/HealthCheck'
-import Roles from 'App/Enums/Roles'
+import roles from 'App/constants/roles'
 
 Route.group(() => {
   Route.group(() => {
@@ -12,7 +12,7 @@ Route.group(() => {
 
   Route.resource('events', 'EventsController')
     .apiOnly()
-    .middleware({ destroy: ['auth', `role:${Roles.ADMIN}`] })
+    .middleware({ destroy: ['auth', `role:${roles.ADMIN}`] })
 
   Route.resource('venues', 'VenuesController').apiOnly()
 

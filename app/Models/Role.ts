@@ -1,5 +1,5 @@
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
-import Roles from 'App/Enums/Roles'
+import roles from 'App/constants/roles'
 import { DateTime } from 'luxon'
 
 export default class Role extends BaseModel {
@@ -7,7 +7,7 @@ export default class Role extends BaseModel {
   public id: string
 
   @column()
-  public name: Roles
+  public name: roles
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

@@ -4,7 +4,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import EventFactory from 'Database/factories/EventFactory'
 import VenueFactory from 'Database/factories/VenueFactory'
 import UserFactory from 'Database/factories/UserFactory'
-import Roles from 'App/Enums/Roles'
+import roles from 'App/constants/roles'
 import Role from 'App/Models/Role'
 
 test.group('Events', (group) => {
@@ -83,8 +83,9 @@ test.group('Events', (group) => {
    */
   test('create an event with all allowed fields', async ({ client, assert }) => {
     const venue = await VenueFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.USER)
     const user = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', Roles.USER)).id,
+      roleId: userRole.id,
     }).create()
 
     const response = await client.post('/api/events').withCsrfToken().json({
@@ -261,8 +262,9 @@ test.group('Events', (group) => {
     const allEvents = await client.get('/api/events')
     const { id, createEmail } = allEvents.body().events[0]
 
+    const userRole = await Role.findByOrFail('name', roles.ADMIN)
     const creator = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', Roles.ADMIN)).id,
+      roleId: userRole.id,
     }).create()
 
     const requestBody = {
@@ -275,8 +277,9 @@ test.group('Events', (group) => {
 
   test('delete an event with admin user', async ({ client, assert }) => {
     await EventFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.ADMIN)
     const adminUser = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', Roles.ADMIN)).id,
+      roleId: userRole.id,
     }).create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]
@@ -288,8 +291,9 @@ test.group('Events', (group) => {
 
   test('delete an event with moderator user', async ({ client, assert }) => {
     await EventFactory.create()
+    const userRole = await Role.findByOrFail('name', roles.MODERATOR)
     const adminUser = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', Roles.MODERATOR)).id,
+      roleId: userRole.id,
     }).create()
     const allEvents = await client.get('/api/events')
     const { id } = allEvents.body().events[0]

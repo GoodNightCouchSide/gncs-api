@@ -14,7 +14,7 @@ export default class RegisterValidator {
     'username.required': 'Der Name muss angegeben werden',
     'username.unique': 'Der Name wird bereits benutzt',
     'email.required': 'Die Email Adresse muss angegeben werden',
-    'email.unique': 'Die Email Adresse ist nicht mehr verfügbar',
+    'email.unique': 'Die Email Adresse existiert bereits.',
     'password.required': 'Das Password muss angegeben werden',
   }
 }
