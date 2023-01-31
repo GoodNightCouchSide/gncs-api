@@ -13,13 +13,12 @@ export default class CreateEventValidator {
     box_office: schema.string.optional(),
     pre_payment: schema.string.optional(),
     alternative_address: schema.string.optional(),
-    cover: schema.file.optional({ size: '2mb', extnames: ['jpg', 'gif', 'png'] }),
     creator_email: schema.string.optional([
       rules.email(),
       rules.exists({ table: 'users', column: 'email' }),
     ]),
     venue_id: schema.string.optional([rules.exists({ table: 'venues', column: 'id' })]),
-    links: schema.string.optional(),
+    event_links: schema.string.optional(),
   })
 
   public messages: CustomMessages = {
@@ -28,7 +27,5 @@ export default class CreateEventValidator {
     'venue_id.exists': 'Referenced venue does not exist',
     'creator_email.email': 'Please enter a valid email address',
     'creator_email.exists': 'Referenced user does not exist',
-    'file.size': 'The file size must be under {{ options.size }}',
-    'file.extname': 'The file must have one of {{ options.extnames }} extension names',
   }
 }

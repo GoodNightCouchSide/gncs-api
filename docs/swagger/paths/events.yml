@@ -1,5 +1,5 @@
 paths:
-  /api/events:
+  /_api/events:
     get:
       tags:
         - Event
@@ -27,6 +27,31 @@ paths:
                     example: true
                   Event:
                     $ref: '#/components/schemas/Event'
+  
+  /_api/events/upload:
+    post:
+      type:
+        - Event
+      description: upload image
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                cover:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cover:
+                    type: strings
 
   /api/events/{id}:
     get:

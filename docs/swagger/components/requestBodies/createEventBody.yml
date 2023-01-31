@@ -3,6 +3,6 @@ components:
     createEventBody:
       description: Successful create a new Event
       content:
-        application/json:
+        multipart/form-data:
           schema:
             $ref: '#/components/schemas/BasicEvent'
