@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
+import { attachment, AttachmentContract } from '@ioc:Adonis/Addons/AttachmentLite'
+
 import User from './User'
 import Venue from './Venue'
 
@@ -22,8 +24,8 @@ export default class Event extends BaseModel {
   @column()
   public description: string
 
-  @column()
-  public cover: string
+  @attachment({ preComputeUrl: true }) // Generating URLs for the API response
+  public cover: AttachmentContract | null
 
   @column()
   public prePayment: string
@@ -38,7 +40,7 @@ export default class Event extends BaseModel {
   public alternativeAddress: string
 
   @column()
-  public links: string
+  public eventLinks: string
 
   @column()
   public creatorEmail: string

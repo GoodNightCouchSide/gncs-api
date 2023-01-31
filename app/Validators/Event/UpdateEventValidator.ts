@@ -13,7 +13,7 @@ export default class UpdateEventValidator {
     box_office: schema.string.optional(),
     pre_payment: schema.string.optional(),
     alternative_address: schema.string.optional(),
-    cover: schema.string.optional([rules.url()]),
+    cover: schema.file.optional({ size: '2mb', extnames: ['jpg', 'gif', 'png'] }),
     // TODO: only allowed if the create a moderator or admin
     is_public: schema.boolean.optional(),
     venue_id: schema.string.optional([rules.exists({ table: 'venues', column: 'id' })]),
@@ -26,5 +26,7 @@ export default class UpdateEventValidator {
     'venue_id.exists': 'Referenced venue does not exist',
     'creator_email.email': 'Please enter a valid email address',
     'creator_email.exists': 'Referenced user does not exist',
+    'file.size': 'The file size must be under {{ options.size }}',
+    'file.extname': 'The file must have one of {{ options.extnames }} extension names',
   }
 }
