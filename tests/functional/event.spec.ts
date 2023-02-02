@@ -134,6 +134,24 @@ test.group('Events', (group) => {
     assert.equal(response2.body().message.errors[0].message, 'title already exists')
   })
 
+  test('create an Event with Authorization and set creatorEmail field', async ({
+    client,
+    assert,
+  }) => {
+    const userRole = await Role.findByOrFail('name', roles.USER)
+    const user = await UserFactory.merge({
+      roleId: userRole.id,
+    }).create()
+    const eventBody = {
+      title: 'testTitleEvent',
+      date: new Date().toISOString(),
+      headliner: 'Test Headliner',
+    }
+    const response = await client.post('/_api/events').json(eventBody).withCsrfToken().loginAs(user)
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.creator_email, user.email)
+  })
+
   test('create an event with not existing venue reference', async ({ client, assert }) => {
     const response = await client.post('/_api/events').withCsrfToken().json({
       title: 'wrongVenueEvent',
@@ -146,30 +164,7 @@ test.group('Events', (group) => {
     assert.equal(response.body().message.errors[0].message, 'Referenced venue does not exist')
   })
 
-  test('create an event with wrong creator reference', async ({ client, assert }) => {
-    const response = await client.post('/_api/events').withCsrfToken().json({
-      title: 'wrongcreatorEvent',
-      date: new Date().toISOString(),
-      headliner: 'Test Headliner',
-      creator_email: 'some.fake@mail.com',
-    })
-
-    assert.equal(response.status(), 422)
-    assert.equal(response.body().message.errors[0].message, 'Referenced user does not exist')
-  })
-
-  test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
-    const response = await client.post('/_api/events').withCsrfToken().json({
-      title: 'wrongCreatorEmailEvent',
-      date: new Date().toISOString(),
-      headliner: 'Test Headliner',
-      creator_email: 'NoValidEmailAddress',
-    })
-    assert.equal(response.status(), 422)
-    assert.equal(response.body().message.errors[0].message, 'Please enter a valid email address')
-  })
-
-  /*
+  /**
    * UPDATE Events
    */
   test('update the whole event', async ({ client, assert }) => {
@@ -242,25 +237,6 @@ test.group('Events', (group) => {
     assert.equal(response.body().message.errors[0].message, 'The file size must be under 2mb')
 
     Drive.restore()
-  })
-
-  test('create an Event with Authorization and set creatorEmail field', async ({
-    client,
-    assert,
-  }) => {
-    const userRole = await Role.findByOrFail('name', roles.USER)
-    const user = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
-    const response = await client
-      .post('/api/events')
-      .json({
-        title: 'testEvent',
-      })
-      .withCsrfToken()
-      .loginAs(user)
-    assert.isTrue(response.body().success)
-    assert.equal(response.body().event.creator_email, user.email)
   })
 
   /*
