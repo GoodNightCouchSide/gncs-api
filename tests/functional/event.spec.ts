@@ -194,50 +194,53 @@ test.group('Events', (group) => {
     })
 
     assert.equal(response.status(), 422)
-    assert.equal(response.body().messages.errors[0].message, 'Referenced venue does not exist')
+    assert.equal(response.body().message.errors[0].message, 'Referenced venue does not exist')
   })
 
-  test('create an Event with Authorization and set creatorEmail field', async ({
+  test('create an Event with Authorization as User and set creatorEmail field', async ({
     client,
     assert,
   }) => {
+    const userRole = await Role.findByOrFail('name', roles.USER)
     const user = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', roles.USER)).id,
+      roleId: userRole.id,
     }).create()
     const body = {
-      title: 'testEvent',
+      title: 'testEvent is user',
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
-    const response = await client.post('/api/events').json(body).withCsrfToken().loginAs(user)
+    const response = await client.post('/_api/events').json(body).withCsrfToken().loginAs(user)
     assert.isTrue(response.body().success)
     assert.equal(response.body().event.creator_email, user.email)
   })
 
   test('create an event as moderator that is automatic public', async ({ client, assert }) => {
     const body = {
-      title: 'testEvent',
+      title: 'testEvent as moderator that is publish',
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
+    const userRole = await Role.findByOrFail('name', roles.MODERATOR)
     const user = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', roles.MODERATOR)).id,
+      roleId: userRole.id,
     }).create()
-    const response = await client.post('/api/events').withCsrfToken().loginAs(user).json(body)
+    const response = await client.post('/_api/events').withCsrfToken().loginAs(user).json(body)
     assert.isTrue(response.body().success)
     assert.isTrue(response.body().event.is_public)
   })
 
   test('create an event as admin that is automatic public', async ({ client, assert }) => {
     const body = {
-      title: 'testEvent',
+      title: 'testEvent as admin that is publish',
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
+    const userRole = await Role.findByOrFail('name', roles.ADMIN)
     const user = await UserFactory.merge({
-      roleId: (await Role.findByOrFail('name', roles.ADMIN)).id,
+      roleId: userRole.id,
     }).create()
-    const response = await client.post('/api/events').withCsrfToken().loginAs(user).json(body)
+    const response = await client.post('/_api/events').withCsrfToken().loginAs(user).json(body)
     assert.isTrue(response.body().success)
     assert.isTrue(response.body().event.is_public)
   })
