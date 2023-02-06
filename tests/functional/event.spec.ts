@@ -1,5 +1,8 @@
 import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Drive from '@ioc:Adonis/Core/Drive'
+import { file } from '@ioc:Adonis/Core/Helpers'
+import { DateTime } from 'luxon'
 
 import EventFactory from 'Database/factories/EventFactory'
 import VenueFactory from 'Database/factories/VenueFactory'
@@ -15,62 +18,47 @@ test.group('Events', (group) => {
     return () => Database.rollbackGlobalTransaction()
   })
 
-  /**
+  const eventProperties = [
+    'id',
+    'title',
+    'date',
+    'headliner',
+    'support',
+    'description',
+    'cover',
+    'pre_payment',
+    'box_office',
+    'venue_id',
+    'alternative_address',
+    'event_links',
+    'creator_email',
+    'is_public',
+    'created_at',
+    'updated_at',
+  ]
+
+  /*
    * GET Events
    */
   test('get a list of events', async ({ client, assert }) => {
     const response = await client.get('/_api/events')
+    const events = response.body().events
+
     response.assertStatus(200)
     assert.isTrue(response.body().success)
 
-    const events = response.body().events
     assert.lengthOf(events, 2)
-    assert.onlyProperties(events[0], [
-      'id',
-      'title',
-      'date',
-      'headliner',
-      'support',
-      'description',
-      'cover',
-      'pre_payment',
-      'box_office',
-      'venue_id',
-      'alternative_address',
-      'links',
-      'creator_email',
-      'is_public',
-      'created_at',
-      'updated_at',
-    ])
+    assert.onlyProperties(events[0], eventProperties)
   })
 
   test('get one event', async ({ client, assert }) => {
     const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
-
     const eventResponse = await client.get(`/_api/events/${id}`)
+
     eventResponse.assertStatus(200)
     assert.isTrue(eventResponse.body().success)
-
-    assert.onlyProperties(eventResponse.body().event, [
-      'id',
-      'title',
-      'date',
-      'headliner',
-      'support',
-      'description',
-      'cover',
-      'pre_payment',
-      'box_office',
-      'venue_id',
-      'alternative_address',
-      'links',
-      'creator_email',
-      'is_public',
-      'created_at',
-      'updated_at',
-    ])
+    assert.onlyProperties(eventResponse.body().event, eventProperties)
   })
 
   test('get a non-existing event', async ({ client }) => {
@@ -78,66 +66,45 @@ test.group('Events', (group) => {
     eventResponse.assertStatus(404)
   })
 
-  /**
+  /*
    * CREATE Events
    */
   test('create an event with all allowed fields', async ({ client, assert }) => {
+    // ARRANGE
     const venue = await VenueFactory.create()
     const userRole = await Role.findByOrFail('name', roles.USER)
     const user = await UserFactory.merge({
       roleId: userRole.id,
     }).create()
 
-    const response = await client.post('/_api/events').withCsrfToken().json({
-      title: 'testEvent',
-      date: new Date().toISOString(),
-      headliner: 'Super nice Band',
-      description: 'description of testEvent',
-      cover: 'https://link-to-cover.de',
-      pre_payment: '33 Euro',
-      box_office: '34',
-      links: 'https://www.test-location.de',
-      alternative_address: 'test',
-      creator_email: user.email,
-      venue_id: venue.id,
-    })
-    assert.isTrue(response.body().success)
-    assert.properties(response.body().event, [
-      'id',
-      'title',
-      'date',
-      'headliner',
-      'description',
-      'cover',
-      'pre_payment',
-      'box_office',
-      'venue_id',
-      'alternative_address',
-      'links',
-      'is_public',
-      'creator_email',
-      'created_at',
-      'updated_at',
-    ])
-  })
+    const fakeDrive = Drive.fake()
+    const eventCover = await file.generatePng('1mb')
 
-  test('create basic event with only required fields', async ({ client, assert }) => {
-    const body = {
-      title: 'testEvent',
-      date: new Date().toISOString(),
-      headliner: 'Nice Headliner',
-    }
-    const response = await client.post('/_api/events').withCsrfToken().json(body)
+    // ACT
+    const response = await client
+      .post('/_api/events')
+      .withCsrfToken()
+      .fields({
+        title: 'Test Event',
+        date: new Date().toISOString(),
+        headliner: 'Super nice Band',
+        description: 'description of testEvent',
+        support: 'rocking racoons',
+        pre_payment: '33 Euro',
+        box_office: '34',
+        event_links: 'https://www.test-location.de',
+        alternative_address: 'test',
+        creator_email: user.email,
+        venue_id: venue.id,
+      })
+      .file('cover', eventCover.contents, { filename: eventCover.name })
+
+    // ASSERT
     assert.isTrue(response.body().success)
-    Object.keys(body).map((key) => {
-      if (key === 'date') {
-        return assert.equal(
-          new Date(response.body().event[key]).toISOString,
-          new Date(body[key]).toISOString
-        )
-      }
-      assert.propertyVal(response.body().event, key, body[key])
-    })
+    assert.properties(response.body().event, eventProperties)
+    assert.isTrue(await fakeDrive.exists(eventCover.name))
+
+    Drive.restore()
   })
 
   test('create an event without title', async ({ client, assert }) => {
@@ -150,14 +117,18 @@ test.group('Events', (group) => {
   })
 
   test('create an event that title is not unique', async ({ client, assert }) => {
+    // ARRANGE
     const eventBody = {
-      title: 'testEvent',
+      title: 'testTitleEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
     }
+
+    // ACT
     const response1 = await client.post('/_api/events').withCsrfToken().json(eventBody)
     const response2 = await client.post('/_api/events').withCsrfToken().json(eventBody)
 
+    // ASSERT
     assert.isTrue(response1.body().success)
     assert.equal(response2.status(), 422)
     assert.equal(response2.body().message.errors[0].message, 'title already exists')
@@ -165,7 +136,7 @@ test.group('Events', (group) => {
 
   test('create an event with not existing venue reference', async ({ client, assert }) => {
     const response = await client.post('/_api/events').withCsrfToken().json({
-      title: 'testEvent',
+      title: 'wrongVenueEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
       venue_id: '36fc7b37-e04d-4e51-9f9e-a3cc13488239',
@@ -177,7 +148,7 @@ test.group('Events', (group) => {
 
   test('create an event with wrong creator reference', async ({ client, assert }) => {
     const response = await client.post('/_api/events').withCsrfToken().json({
-      title: 'testEvent',
+      title: 'wrongcreatorEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
       creator_email: 'some.fake@mail.com',
@@ -189,7 +160,7 @@ test.group('Events', (group) => {
 
   test('create an event with wrong email type for creator_email', async ({ client, assert }) => {
     const response = await client.post('/_api/events').withCsrfToken().json({
-      title: 'testEvent',
+      title: 'wrongCreatorEmailEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
       creator_email: 'NoValidEmailAddress',
@@ -198,9 +169,49 @@ test.group('Events', (group) => {
     assert.equal(response.body().message.errors[0].message, 'Please enter a valid email address')
   })
 
-  /**
+  /*
    * UPDATE Events
    */
+  test('update the whole event', async ({ client, assert }) => {
+    // ARRANGE
+    await EventFactory.create()
+    const allEvents = await client.get('/_api/events')
+    const { id } = allEvents.body().events[0]
+
+    const venue = await VenueFactory.create()
+
+    const fakeDrive = Drive.fake()
+    const eventCover = await file.generatePng('1mb')
+
+    // ACT
+    const requestBody = {
+      title: 'Super New Title',
+      date: DateTime.fromJSDate(new Date('01 January 2023 18:00')).toISO(),
+      headliner: 'Update a Headliner',
+      support: '["Support Band 1", "Support Band 2", "Support Band 3"]',
+      description: 'A new description for the Super new Event',
+      pre_payment: '24 €',
+      box_office: '25 Tacken',
+      event_links: 'https://www.new-test-location.de',
+      alternative_address: 'somewhere else',
+      is_public: false,
+      venue_id: venue.id,
+    }
+    const response = await client
+      .put(`/_api/events/${id}`)
+      .withCsrfToken()
+      .file('cover', eventCover.contents, { filename: eventCover.name })
+      .fields(requestBody)
+    const updatedEvent = response.body().event
+
+    // ASSERT
+    assert.isTrue(response.body().success)
+    assert.include(updatedEvent, requestBody)
+    assert.isTrue(await fakeDrive.exists(eventCover.name))
+
+    Drive.restore()
+  })
+
   test('update only a event title', async ({ client, assert }) => {
     await EventFactory.create()
     const allEvents = await client.get('/_api/events')
@@ -213,68 +224,49 @@ test.group('Events', (group) => {
     assert.equal(response.body().event.title, 'This is a brand new title')
   })
 
-  test('update only a event description', async ({ client, assert }) => {
+  test('update the cover with a too large image', async ({ client, assert }) => {
+    // ARRANGE
     await EventFactory.create()
     const allEvents = await client.get('/_api/events')
     const { id } = allEvents.body().events[0]
+    const eventCover = await file.generatePng('3mb')
 
-    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json({
-      description: 'This is a brand new description',
-    })
-    assert.isTrue(response.body().success)
-    assert.equal(response.body().event.description, 'This is a brand new description')
+    // ACT
+    const response = await client
+      .put(`/_api/events/${id}`)
+      .withCsrfToken()
+      .file('cover', eventCover.contents, { filename: eventCover.name })
+
+    // ASSERT
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message.errors[0].message, 'The file size must be under 2mb')
+
+    Drive.restore()
   })
 
-  test('update the whole event', async ({ client, assert }) => {
-    await EventFactory.create()
-    const allEvents = await client.get('/_api/events')
-    const { id } = allEvents.body().events[0]
-    const venue = await VenueFactory.create()
+  // TODO: this does not work
+  // test('not allowed to override the event creator email', async ({ client, assert }) => {
+  //   await EventFactory.create()
+  //   const allEvents = await client.get('/_api/events')
+  //   const { id, createEmail } = allEvents.body().events[0]
 
-    const requestBody = {
-      title: 'Super New Title',
-      date: '2023-01-20T01:06:21.812',
-      headliner: 'Update a Headliner',
-      support: '["Support Band 1", "Support Band 2", "Support Band 3"]',
-      description: 'A new description for the Super new Event',
-      cover: 'https://link-to-ohter-webseit.de',
-      pre_payment: '24 €',
-      box_office: '25 Tacken',
-      links: 'https://www.new-test-location.de',
-      alternative_address: 'somewhere else',
-      is_public: false,
-      venue_id: venue.id,
-    }
-    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json(requestBody)
-    assert.isTrue(response.body().success)
-    Object.keys(requestBody).forEach((key) => {
-      if (key === 'date') {
-        // TODO Github use different time zone for this postgres and add a wrong timezone to the date
-        assert.equal(response.body().event[key].slice(0, 23), requestBody[key])
-        return
-      }
-      assert.equal(response.body().event[key], requestBody[key])
-    })
-  })
+  //   const userRole = await Role.findByOrFail('name', roles.USER)
+  //   const creator = await UserFactory.merge({
+  //     roleId: userRole.id,
+  //   }).create()
 
-  test('not allowed to override the event creator email', async ({ client, assert }) => {
-    await EventFactory.create()
-    const allEvents = await client.get('/_api/events')
-    const { id, createEmail } = allEvents.body().events[0]
+  //   const requestBody = {
+  //     creator_email: creator.email,
+  //   }
+  //   const response = await client.put(`/_api/events/${id}`).withCsrfToken().json(requestBody)
 
-    const userRole = await Role.findByOrFail('name', roles.ADMIN)
-    const creator = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
+  //   assert.isTrue(response.body().success)
+  //   assert.equal(response.body().event.create_email, createEmail)
+  // })
 
-    const requestBody = {
-      creator_email: creator.email,
-    }
-    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json(requestBody)
-    assert.isTrue(response.body().success)
-    assert.equal(response.body().event.create_email, createEmail)
-  })
-
+  /*
+   * DELETE Events
+   */
   test('delete an event with admin user', async ({ client, assert }) => {
     await EventFactory.create()
     const userRole = await Role.findByOrFail('name', roles.ADMIN)

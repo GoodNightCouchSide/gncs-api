@@ -25,7 +25,8 @@
     "@adonisjs/auth",
     "adonis5-swagger",
     "@adonisjs/shield",
-    "@adonisjs/session"
+    "@adonisjs/session",
+    "@adonisjs/attachment-lite"
   ],
   "aceProviders": [
     "@adonisjs/repl"

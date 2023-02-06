@@ -13,11 +13,10 @@ export default class UpdateEventValidator {
     box_office: schema.string.optional(),
     pre_payment: schema.string.optional(),
     alternative_address: schema.string.optional(),
-    cover: schema.string.optional([rules.url()]),
     // TODO: only allowed if the create a moderator or admin
     is_public: schema.boolean.optional(),
     venue_id: schema.string.optional([rules.exists({ table: 'venues', column: 'id' })]),
-    links: schema.string.optional(),
+    event_links: schema.string.optional(),
   })
 
   public messages: CustomMessages = {
