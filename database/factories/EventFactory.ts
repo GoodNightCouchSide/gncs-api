@@ -2,13 +2,11 @@ import Factory from '@ioc:Adonis/Lucid/Factory'
 import Drive from '@ioc:Adonis/Core/Drive'
 import { file } from '@ioc:Adonis/Core/Helpers'
 import { Attachment } from '@ioc:Adonis/Addons/AttachmentLite'
+import { DateTime } from 'luxon'
 
 import Event from '../../app/Models/Event'
 
 export default Factory.define(Event, async ({ faker }: any) => {
-  const dateFrom = new Date()
-  const dateTo = new Date()
-  dateTo.setDate(dateTo.getDate() + Math.round(5))
   const support = new Array(5).fill(null).map(() => faker.random.word())
 
   // Create an instance of attachment and mark image as persisted
@@ -25,7 +23,7 @@ export default Factory.define(Event, async ({ faker }: any) => {
 
   return {
     title: faker.random.word(),
-    date: faker.date.between(dateFrom, dateTo).toISOString(),
+    date: DateTime.fromJSDate(faker.date.past(2)),
     headliner: faker.random.word(),
     support: JSON.stringify(support),
     description: faker.random.word(),

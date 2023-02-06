@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Drive from '@ioc:Adonis/Core/Drive'
 import { file } from '@ioc:Adonis/Core/Helpers'
+import { DateTime } from 'luxon'
 
 import EventFactory from 'Database/factories/EventFactory'
 import VenueFactory from 'Database/factories/VenueFactory'
@@ -185,7 +186,7 @@ test.group('Events', (group) => {
     // ACT
     const requestBody = {
       title: 'Super New Title',
-      // date: '2023-01-20T01:06:21.812+01:00', TODO: mock the date
+      date: DateTime.fromJSDate(new Date('01 January 2023 18:00')).toISO(),
       headliner: 'Update a Headliner',
       support: '["Support Band 1", "Support Band 2", "Support Band 3"]',
       description: 'A new description for the Super new Event',
