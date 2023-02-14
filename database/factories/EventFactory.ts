@@ -6,7 +6,7 @@ import { DateTime } from 'luxon'
 
 import Event from '../../app/Models/Event'
 
-export default Factory.define(Event, async ({ faker }: any) => {
+export const EventFactory = Factory.define(Event, async ({ faker }: any) => {
   const support = new Array(5).fill(null).map(() => faker.random.word())
 
   // Create an instance of attachment and mark image as persisted

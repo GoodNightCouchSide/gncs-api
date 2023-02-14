@@ -4,9 +4,9 @@ import Drive from '@ioc:Adonis/Core/Drive'
 import { file } from '@ioc:Adonis/Core/Helpers'
 import { DateTime } from 'luxon'
 
-import EventFactory from 'Database/factories/EventFactory'
-import VenueFactory from 'Database/factories/VenueFactory'
-import UserFactory from 'Database/factories/UserFactory'
+import { EventFactory } from 'Database/factories/EventFactory'
+import { VenueFactory } from 'Database/factories/VenueFactory'
+import { UserFactory } from 'Database/factories/UserFactory'
 import roles from 'App/constants/roles'
 import Role from 'App/Models/Role'
 

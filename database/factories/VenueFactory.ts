@@ -1,7 +1,7 @@
 import Venue from 'App/Models/Venue'
 import Factory from '@ioc:Adonis/Lucid/Factory'
 
-export default Factory.define(Venue, ({ faker }) => {
+export const VenueFactory = Factory.define(Venue, ({ faker }) => {
   return {
     name: faker.random.word(),
     description: faker.random.words(),
