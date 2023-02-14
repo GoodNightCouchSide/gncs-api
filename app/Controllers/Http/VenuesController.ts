@@ -20,8 +20,7 @@ export default class VenuesController {
     response.json({ success: true, venue })
   }
 
-  // post one venue
-  // user must be moderator or admin
+  // create one venue
   public async store({ request, response }: HttpContextContract) {
     const payload = await request.validate(CreateVenueValidator)
     const venue = await Venue.create(payload)
@@ -31,7 +30,6 @@ export default class VenuesController {
   }
 
   // update one venue with id
-  // user must be moderator or admin
   public async update({ request, response }: HttpContextContract) {
     const { id } = request.params()
     const venue = await Venue.findOrFail(id)
@@ -44,7 +42,6 @@ export default class VenuesController {
   }
 
   // delete one venue with id
-  // user must be admin
   public async destroy({ request, response }: HttpContextContract) {
     const { id } = request.params()
     const venue = await Venue.findOrFail(id)

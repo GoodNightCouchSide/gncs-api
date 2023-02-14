@@ -1,13 +1,23 @@
 import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
 
-import VenueFactory from 'Database/factories/VenueFactory'
+import { VenueFactory } from 'Database/factories/VenueFactory'
+import { createTestAccount } from '../testHelpers/createTestAccount'
 
 test.group('Venues', (group) => {
+  let adminUser
+  let unauthorizedUser
+
+  const VENUE_ROUTE = '/_api/venues'
+
   // We use the Database global transactions to have a clean database state in-between tests.
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     await VenueFactory.createMany(2)
+
+    const testAccount = await createTestAccount()
+    unauthorizedUser = testAccount.userUser
+    adminUser = testAccount.adminUser
     return () => Database.rollbackGlobalTransaction()
   })
 
@@ -15,7 +25,7 @@ test.group('Venues', (group) => {
    * READ
    */
   test('get a list of venues', async ({ client, assert }) => {
-    const response = await client.get('/_api/venues')
+    const response = await client.get(VENUE_ROUTE)
     const venues = response.body().venues
 
     response.assertStatus(200)
@@ -35,7 +45,7 @@ test.group('Venues', (group) => {
   })
 
   test('get one venue', async ({ client, assert }) => {
-    const allVenues = await client.get('/_api/venues')
+    const allVenues = await client.get(VENUE_ROUTE)
     const { id } = allVenues.body().venues[0]
 
     const venueResponse = await client.get(`/_api/venues/${id}`)
@@ -63,8 +73,8 @@ test.group('Venues', (group) => {
   /*
    * CREATE
    */
-  test('create an venue with all allowed fields', async ({ client, assert }) => {
-    const response = await client.post('/_api/venues').withCsrfToken().json({
+  test('create an venue, authorized', async ({ client, assert }) => {
+    const response = await client.post(VENUE_ROUTE).withCsrfToken().loginAs(adminUser).json({
       name: 'Venue',
       description: 'Description of a Venue',
       street: 'Musterstraße',
@@ -87,8 +97,37 @@ test.group('Venues', (group) => {
     ])
   })
 
+  test('create an venue without authentication', async ({ client, assert }) => {
+    const response = await client.post(VENUE_ROUTE).withCsrfToken().loginAs(unauthorizedUser).json({
+      name: 'Venue',
+      description: 'Description of a Venue',
+      street: 'Musterstraße',
+      streetNumber: '7a',
+      postCode: '12345',
+      city: 'Berlin',
+    })
+
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
+  })
+
+  test('create an venue without authentication: not logged in', async ({ client, assert }) => {
+    const response = await client.post(VENUE_ROUTE).withCsrfToken().json({
+      name: 'Venue',
+      description: 'Description of a Venue',
+      street: 'Musterstraße',
+      streetNumber: '7a',
+      postCode: '12345',
+      city: 'Berlin',
+    })
+
+    assert.isFalse(response.body().success)
+    assert.include(response.body().message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
+  })
+
   test('create an venue with an too long zip', async ({ client, assert }) => {
-    const response = await client.post('/_api/venues').withCsrfToken().json({
+    const response = await client.post(VENUE_ROUTE).withCsrfToken().loginAs(adminUser).json({
       name: 'Invalid Venue',
       description: 'Description of a Venue',
       street: 'Musterstraße',
@@ -108,7 +147,8 @@ test.group('Venues', (group) => {
    * UPDATE
    */
   test('update a venue completely', async ({ client, assert }) => {
-    const allVenues = await client.get('/_api/venues')
+    // ARRANGE
+    const allVenues = await client.get(VENUE_ROUTE)
     const venue = allVenues.body().venues[0]
 
     const newValues = {
@@ -122,27 +162,52 @@ test.group('Venues', (group) => {
       capacity: 333,
     }
 
+    // ACT
     const response = await client
-      .put(`/_api/venues/${venue.id}`)
+      .put(`${VENUE_ROUTE}/${venue.id}`)
       .withCsrfToken()
+      .loginAs(adminUser)
       .json({
         ...newValues,
         streetNumber: newValues.street_number,
         postCode: newValues.post_code,
       })
+
+    // ASSERT
     const updatedVenue = response.body().venue
 
     assert.isTrue(response.body().success)
     assert.include(updatedVenue, newValues)
   })
 
-  test('update one field of a venue', async ({ client, assert }) => {
-    const allVenues = await client.get('/_api/venues')
+  test('update a venue without authentication', async ({ client, assert }) => {
+    const allVenues = await client.get(VENUE_ROUTE)
     const venue = allVenues.body().venues[0]
 
-    const response = await client.put(`/_api/venues/${venue.id}`).withCsrfToken().json({
-      description: 'This is an updated description',
-    })
+    const response = await client
+      .put(`${VENUE_ROUTE}/${venue.id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+      .json({
+        description: 'This is an updated description',
+      })
+
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
+  })
+
+  test('update one field of a venue', async ({ client, assert }) => {
+    const allVenues = await client.get(VENUE_ROUTE)
+    const venue = allVenues.body().venues[0]
+
+    const response = await client
+      .put(`${VENUE_ROUTE}/${venue.id}`)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .json({
+        description: 'This is an updated description',
+      })
 
     assert.isTrue(response.body().success)
     assert.equal(response.body().venue.description, 'This is an updated description')
@@ -152,12 +217,16 @@ test.group('Venues', (group) => {
   })
 
   test('update an venue with an too short zip', async ({ client, assert }) => {
-    const allVenues = await client.get('/_api/venues')
+    const allVenues = await client.get(VENUE_ROUTE)
     const venue = allVenues.body().venues[0]
 
-    const response = await client.put(`/_api/venues/${venue.id}`).withCsrfToken().json({
-      postCode: '123',
-    })
+    const response = await client
+      .put(`${VENUE_ROUTE}/${venue.id}`)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .json({
+        postCode: '123',
+      })
 
     assert.equal(
       response.body().message.errors[0].message,
@@ -170,11 +239,29 @@ test.group('Venues', (group) => {
    * DELETE
    */
   test('delete an event', async ({ client, assert }) => {
-    const allVenues = await client.get('/_api/venues')
+    const allVenues = await client.get(VENUE_ROUTE)
     const { id } = allVenues.body().venues[0]
 
-    const response = await client.delete(`/_api/venues/${id}`).withCsrfToken()
+    const response = await client.delete(`${VENUE_ROUTE}/${id}`).withCsrfToken().loginAs(adminUser)
+
     assert.isTrue(response.body().success)
     assert.notExists(response.body().venue)
+  })
+
+  test('delete an event as unauthorized', async ({ client, assert }) => {
+    // ARRANGE
+    const allVenues = await client.get(VENUE_ROUTE)
+    const { id } = allVenues.body().venues[0]
+
+    // ACT
+    const response = await client
+      .delete(`${VENUE_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+
+    // ASSERT
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
   })
 })
