@@ -32,7 +32,7 @@ export const EventFactory = Factory.define(Event, async ({ faker }: any) => {
     box_office: (faker.random.numeric(5) + faker.random.numeric(3)).toString(),
     venue: faker.random.numeric(),
     event_links: faker.random.words(),
-    creator: faker.random.numeric(),
+    // creator_email: faker.internet.email(),
     is_public: true,
   }
 }).build()

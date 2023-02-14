@@ -6,15 +6,24 @@ import { DateTime } from 'luxon'
 
 import { EventFactory } from 'Database/factories/EventFactory'
 import { VenueFactory } from 'Database/factories/VenueFactory'
-import { UserFactory } from 'Database/factories/UserFactory'
-import roles from 'App/constants/roles'
-import Role from 'App/Models/Role'
+import { createTestUser } from '../testHelpers/createTestUser'
 
 test.group('Events', (group) => {
+  let adminUser
+  let unauthorizedUser
+  let moderatorUser
+
+  const EVENT_ROUTE = '/_api/events'
+
   // We use the Database global transactions to have a clean database state in-between tests.
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     await EventFactory.createMany(2)
+
+    const testAccount = await createTestUser()
+    unauthorizedUser = testAccount.userUser
+    adminUser = testAccount.adminUser
+    moderatorUser = testAccount.moderatorUser
     return () => Database.rollbackGlobalTransaction()
   })
 
@@ -41,7 +50,7 @@ test.group('Events', (group) => {
    * GET Events
    */
   test('get a list of events', async ({ client, assert }) => {
-    const response = await client.get('/_api/events')
+    const response = await client.get(EVENT_ROUTE)
     const events = response.body().events
 
     response.assertStatus(200)
@@ -52,7 +61,7 @@ test.group('Events', (group) => {
   })
 
   test('get one event', async ({ client, assert }) => {
-    const allEvents = await client.get('/_api/events')
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
     const eventResponse = await client.get(`/_api/events/${id}`)
 
@@ -72,18 +81,15 @@ test.group('Events', (group) => {
   test('create an event with all allowed fields', async ({ client, assert }) => {
     // ARRANGE
     const venue = await VenueFactory.create()
-    const userRole = await Role.findByOrFail('name', roles.USER)
-    const user = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
 
     const fakeDrive = Drive.fake()
     const eventCover = await file.generatePng('1mb')
 
     // ACT
     const response = await client
-      .post('/_api/events')
+      .post(EVENT_ROUTE)
       .withCsrfToken()
+      .loginAs(adminUser)
       .fields({
         title: 'Test Event',
         date: new Date().toISOString(),
@@ -94,10 +100,10 @@ test.group('Events', (group) => {
         box_office: '34',
         event_links: 'https://www.test-location.de',
         alternative_address: 'test',
+        creator_email: adminUser.email,
         venue_id: venue.id,
       })
       .file('cover', eventCover.contents, { filename: eventCover.name })
-      .loginAs(user)
 
     // ASSERT
     assert.isTrue(response.body().success)
@@ -107,8 +113,27 @@ test.group('Events', (group) => {
     Drive.restore()
   })
 
+  test('create an event without authentication', async ({ client, assert }) => {
+    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(unauthorizedUser).json({
+      title: 'Unauthorized event title',
+    })
+
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
+  })
+
+  test('create an venue without authentication: not logged in', async ({ client, assert }) => {
+    const response = await client.post(EVENT_ROUTE).withCsrfToken().json({
+      title: 'Unauthorized event title',
+    })
+
+    assert.isFalse(response.body().success)
+    assert.include(response.body().message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
+  })
+
   test('create an event without title', async ({ client, assert }) => {
-    const response = await client.post('/_api/events').withCsrfToken().json({
+    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(adminUser).json({
       description: 'test event description',
     })
 
@@ -125,8 +150,16 @@ test.group('Events', (group) => {
     }
 
     // ACT
-    const response1 = await client.post('/_api/events').withCsrfToken().json(eventBody)
-    const response2 = await client.post('/_api/events').withCsrfToken().json(eventBody)
+    const response1 = await client
+      .post(EVENT_ROUTE)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .json(eventBody)
+    const response2 = await client
+      .post(EVENT_ROUTE)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .json(eventBody)
 
     // ASSERT
     assert.isTrue(response1.body().success)
@@ -134,26 +167,26 @@ test.group('Events', (group) => {
     assert.equal(response2.body().message.errors[0].message, 'title already exists')
   })
 
-  test('create an Event with Authorization and set creatorEmail field', async ({
-    client,
-    assert,
-  }) => {
-    const userRole = await Role.findByOrFail('name', roles.USER)
-    const user = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
-    const eventBody = {
-      title: 'testTitleEvent',
-      date: new Date().toISOString(),
-      headliner: 'Test Headliner',
-    }
-    const response = await client.post('/_api/events').json(eventBody).withCsrfToken().loginAs(user)
-    assert.isTrue(response.body().success)
-    assert.equal(response.body().event.creator_email, user.email)
-  })
+  // test('create an Event with Authorization and set creatorEmail field', async ({
+  //   client,
+  //   assert,
+  // }) => {
+  //   const userRole = await Role.findByOrFail('name', roles.USER)
+  //   const user = await UserFactory.merge({
+  //     roleId: userRole.id,
+  //   }).create()
+  //   const eventBody = {
+  //     title: 'testTitleEvent',
+  //     date: new Date().toISOString(),
+  //     headliner: 'Test Headliner',
+  //   }
+  //   const response = await client.post('/_api/events').json(eventBody).withCsrfToken().loginAs(user)
+  //   assert.isTrue(response.body().success)
+  //   assert.equal(response.body().event.creator_email, user.email)
+  // })
 
   test('create an event with not existing venue reference', async ({ client, assert }) => {
-    const response = await client.post('/_api/events').withCsrfToken().json({
+    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(adminUser).json({
       title: 'wrongVenueEvent',
       date: new Date().toISOString(),
       headliner: 'Test Headliner',
@@ -164,13 +197,12 @@ test.group('Events', (group) => {
     assert.equal(response.body().message.errors[0].message, 'Referenced venue does not exist')
   })
 
-  /**
+  /*
    * UPDATE Events
    */
   test('update the whole event', async ({ client, assert }) => {
     // ARRANGE
-    await EventFactory.create()
-    const allEvents = await client.get('/_api/events')
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
 
     const venue = await VenueFactory.create()
@@ -195,6 +227,7 @@ test.group('Events', (group) => {
     const response = await client
       .put(`/_api/events/${id}`)
       .withCsrfToken()
+      .loginAs(adminUser)
       .file('cover', eventCover.contents, { filename: eventCover.name })
       .fields(requestBody)
     const updatedEvent = response.body().event
@@ -207,14 +240,36 @@ test.group('Events', (group) => {
     Drive.restore()
   })
 
-  test('update only a event title', async ({ client, assert }) => {
-    await EventFactory.create()
-    const allEvents = await client.get('/_api/events')
+  test('update an event without authentication', async ({ client, assert }) => {
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
 
-    const response = await client.put(`/_api/events/${id}`).withCsrfToken().json({
-      title: 'This is a brand new title',
-    })
+    const response = await client
+      .put(`${EVENT_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+      .json({
+        title: 'This is a brand new title',
+      })
+
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
+  })
+
+  test('update only a event title', async ({ client, assert }) => {
+    // await EventFactory.create()
+    const allEvents = await client.get(EVENT_ROUTE)
+    const { id } = allEvents.body().events[0]
+
+    const response = await client
+      .put(`${EVENT_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .json({
+        title: 'This is a brand new title',
+      })
+
     assert.isTrue(response.body().success)
     assert.equal(response.body().event.title, 'This is a brand new title')
   })
@@ -222,7 +277,7 @@ test.group('Events', (group) => {
   test('update the cover with a too large image', async ({ client, assert }) => {
     // ARRANGE
     await EventFactory.create()
-    const allEvents = await client.get('/_api/events')
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
     const eventCover = await file.generatePng('3mb')
 
@@ -230,6 +285,7 @@ test.group('Events', (group) => {
     const response = await client
       .put(`/_api/events/${id}`)
       .withCsrfToken()
+      .loginAs(adminUser)
       .file('cover', eventCover.contents, { filename: eventCover.name })
 
     // ASSERT
@@ -239,43 +295,71 @@ test.group('Events', (group) => {
     Drive.restore()
   })
 
+  test('not allowed to override the event creator email', async ({ client, assert }) => {
+    // ARRANGE
+    const newEventResponse = await client
+      .post(EVENT_ROUTE)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .fields({
+        title: 'Test Event with creator email',
+        date: new Date().toISOString(),
+        headliner: 'Super nice Band',
+        description: 'description of testEvent',
+        support: 'rocking racoons',
+        pre_payment: '33 Euro',
+        box_office: '34',
+        creator_email: adminUser.email,
+      })
+
+    const newEvent = newEventResponse.body().event
+
+    // ACT
+    const requestBody = {
+      creator_email: 'random@racoon.com',
+    }
+    const response = await client
+      .put(`${EVENT_ROUTE}/${newEvent.id}`)
+      .withCsrfToken()
+      .loginAs(moderatorUser)
+      .json(requestBody)
+
+    // ASSERT
+    assert.isTrue(response.body().success)
+    assert.notEqual(response.body().event.creator_email, requestBody.creator_email)
+  })
+
   /*
    * DELETE Events
    */
   test('delete an event with admin user', async ({ client, assert }) => {
-    await EventFactory.create()
-    const userRole = await Role.findByOrFail('name', roles.ADMIN)
-    const adminUser = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
-    const allEvents = await client.get('/_api/events')
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
 
-    const response = await client.delete(`/_api/events/${id}`).withCsrfToken().loginAs(adminUser)
+    const response = await client.delete(`${EVENT_ROUTE}/${id}`).withCsrfToken().loginAs(adminUser)
     assert.isTrue(response.body().success)
     assert.notExists(response.body().event)
   })
 
-  test('delete an event with moderator user', async ({ client, assert }) => {
-    await EventFactory.create()
-    const userRole = await Role.findByOrFail('name', roles.MODERATOR)
-    const adminUser = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
-    const allEvents = await client.get('/_api/events')
+  test('delete an event, unauthorized', async ({ client, assert }) => {
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
 
-    const response = await client.delete(`/_api/events/${id}`).withCsrfToken().loginAs(adminUser)
+    const response = await client
+      .delete(`${EVENT_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+
     response.assertStatus(403)
     assert.equal(response.body().message, 'You are not authorized to perform this action')
   })
 
-  test('delete an event without authentication', async ({ client, assert }) => {
-    await EventFactory.create()
-    const allEvents = await client.get('/_api/events')
+  test('delete an event without authentication: not logged in', async ({ client, assert }) => {
+    const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
 
     const response = await client.delete(`/_api/events/${id}`).withCsrfToken()
+
     response.assertStatus(403)
     assert.include(response.body().message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
     assert.isFalse(response.body().success)

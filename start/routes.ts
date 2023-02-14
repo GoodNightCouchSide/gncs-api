@@ -11,8 +11,14 @@ Route.group(() => {
   }).prefix('auth')
 
   Route.resource('events', 'EventsController')
+    .middleware({
+      index: [],
+      show: [],
+      store: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      update: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      destroy: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+    })
     .apiOnly()
-    .middleware({ destroy: ['auth', `hasRole:${roles.ADMIN}`] })
 
   Route.resource('venues', 'VenuesController')
     .middleware({
