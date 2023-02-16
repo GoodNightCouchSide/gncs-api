@@ -20,14 +20,18 @@ export default class EventsController {
   }
 
   // post one event
-  public async store({ request, response }: HttpContextContract) {
-    // TODO set is_public if user.role equal moderator or admin
-    // TODO create_email must not be handed over, must be taken over via the auth
+  public async store({ request, response, auth }: HttpContextContract) {
     const payload = await request.validate(CreateEventValidator)
     const event = await Event.create(payload)
 
     const { cover } = await request.validate(CoverUploadValidator)
     event.cover = cover ? Attachment.fromFile(cover) : null
+
+    if (auth.user) {
+      // TODO set is_public if user.role equal moderator or admin
+      event.creatorEmail = auth.user.email
+      await event.save()
+    }
 
     await event.save()
     response.json({ success: true, event })
