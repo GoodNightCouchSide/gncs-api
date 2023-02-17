@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
 
 import { VenueFactory } from 'Database/factories/VenueFactory'
-import { createTestAccount } from '../testHelpers/createTestAccount'
+import { createTestUser } from '../testHelpers/createTestUser'
 
 test.group('Venues', (group) => {
   let adminUser
@@ -15,7 +15,7 @@ test.group('Venues', (group) => {
     await Database.beginGlobalTransaction()
     await VenueFactory.createMany(2)
 
-    const testAccount = await createTestAccount()
+    const testAccount = await createTestUser()
     unauthorizedUser = testAccount.userUser
     adminUser = testAccount.adminUser
     return () => Database.rollbackGlobalTransaction()

@@ -3,7 +3,7 @@ import Role from 'App/Models/Role'
 
 import { UserFactory } from 'Database/factories/UserFactory'
 
-export async function createTestAccount() {
+export async function createTestUser() {
   const adminRole = await Role.findBy('name', roles.ADMIN)
   const moderatorRole = await Role.findBy('name', roles.MODERATOR)
   const userRole = await Role.findBy('name', roles.USER)

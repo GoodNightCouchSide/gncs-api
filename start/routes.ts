@@ -18,9 +18,9 @@ Route.group(() => {
     .middleware({
       index: [],
       show: [],
-      store: ['auth', `hasRole:${roles.ADMIN}, ${roles.MODERATOR}`],
-      update: ['auth', `hasRole:${roles.ADMIN}, ${roles.MODERATOR}`],
-      destroy: ['auth', `hasRole:${roles.ADMIN}, ${roles.MODERATOR}`],
+      store: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      update: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      destroy: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
     })
     .apiOnly()
 
