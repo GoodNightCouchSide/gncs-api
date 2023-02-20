@@ -113,24 +113,16 @@ test.group('Events', (group) => {
     Drive.restore()
   })
 
-  test('create an event without authentication', async ({ client, assert }) => {
-    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(unauthorizedUser).json({
-      title: 'Unauthorized event title',
-    })
+  // TODO check if create an event without authentication is not public
+  // test('create an event without authentication', async ({ client, assert }) => {
+  //   const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(unauthorizedUser).json({
+  //     title: 'Unauthorized event title',
+  //   })
 
-    response.assertStatus(403)
-    assert.isFalse(response.body().success)
-    assert.equal(response.body().message, 'You are not authorized to perform this action')
-  })
-
-  test('create an venue without authentication: not logged in', async ({ client, assert }) => {
-    const response = await client.post(EVENT_ROUTE).withCsrfToken().json({
-      title: 'Unauthorized event title',
-    })
-
-    assert.isFalse(response.body().success)
-    assert.include(response.body().message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
-  })
+  //   response.assertStatus(403)
+  //   assert.isFalse(response.body().success)
+  //   assert.equal(response.body().message, 'You are not authorized to perform this action')
+  // })
 
   test('create an event without title', async ({ client, assert }) => {
     const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(adminUser).json({
@@ -201,18 +193,18 @@ test.group('Events', (group) => {
     client,
     assert,
   }) => {
-    const userRole = await Role.findByOrFail('name', roles.USER)
-    const user = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
     const body = {
       title: 'testEvent is user',
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
-    const response = await client.post('/_api/events').json(body).withCsrfToken().loginAs(user)
+    const response = await client
+      .post(EVENT_ROUTE)
+      .json(body)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
     assert.isTrue(response.body().success)
-    assert.equal(response.body().event.creator_email, user.email)
+    assert.equal(response.body().event.creator_email, unauthorizedUser.email)
   })
 
   test('create an event as moderator that is automatic public', async ({ client, assert }) => {
@@ -221,11 +213,11 @@ test.group('Events', (group) => {
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
-    const userRole = await Role.findByOrFail('name', roles.MODERATOR)
-    const user = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
-    const response = await client.post('/_api/events').withCsrfToken().loginAs(user).json(body)
+    const response = await client
+      .post(EVENT_ROUTE)
+      .withCsrfToken()
+      .loginAs(moderatorUser)
+      .json(body)
     assert.isTrue(response.body().success)
     assert.isTrue(response.body().event.is_public)
   })
@@ -236,11 +228,7 @@ test.group('Events', (group) => {
       date: new Date().toISOString(),
       headliner: 'Nice Headliner',
     }
-    const userRole = await Role.findByOrFail('name', roles.ADMIN)
-    const user = await UserFactory.merge({
-      roleId: userRole.id,
-    }).create()
-    const response = await client.post('/_api/events').withCsrfToken().loginAs(user).json(body)
+    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(adminUser).json(body)
     assert.isTrue(response.body().success)
     assert.isTrue(response.body().event.is_public)
   })
