@@ -12,9 +12,17 @@ Route.group(() => {
 
   Route.resource('events', 'EventsController')
     .apiOnly()
-    .middleware({ destroy: ['auth', `role:${roles.ADMIN}`] })
+    .middleware({ destroy: ['auth', `hasRole:${roles.ADMIN}`] })
 
-  Route.resource('venues', 'VenuesController').apiOnly()
+  Route.resource('venues', 'VenuesController')
+    .middleware({
+      index: [],
+      show: [],
+      store: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      update: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      destroy: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+    })
+    .apiOnly()
 
   Route.get('/health', async ({ response }: HttpContextContract) => {
     const report = await HealthCheck.getReport()
