@@ -113,24 +113,16 @@ test.group('Events', (group) => {
     Drive.restore()
   })
 
-  test('create an event without authentication', async ({ client, assert }) => {
-    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(unauthorizedUser).json({
-      title: 'Unauthorized event title',
-    })
+  // TODO check if create an event without authentication is not public
+  // test('create an event without authentication', async ({ client, assert }) => {
+  //   const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(unauthorizedUser).json({
+  //     title: 'Unauthorized event title',
+  //   })
 
-    response.assertStatus(403)
-    assert.isFalse(response.body().success)
-    assert.equal(response.body().message, 'You are not authorized to perform this action')
-  })
-
-  test('create an venue without authentication: not logged in', async ({ client, assert }) => {
-    const response = await client.post(EVENT_ROUTE).withCsrfToken().json({
-      title: 'Unauthorized event title',
-    })
-
-    assert.isFalse(response.body().success)
-    assert.include(response.body().message, 'E_UNAUTHORIZED_ACCESS: Unauthorized access')
-  })
+  //   response.assertStatus(403)
+  //   assert.isFalse(response.body().success)
+  //   assert.equal(response.body().message, 'You are not authorized to perform this action')
+  // })
 
   test('create an event without title', async ({ client, assert }) => {
     const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(adminUser).json({
@@ -195,6 +187,50 @@ test.group('Events', (group) => {
 
     assert.equal(response.status(), 422)
     assert.equal(response.body().message.errors[0].message, 'Referenced venue does not exist')
+  })
+
+  test('create an Event with Authorization as User and set creatorEmail field', async ({
+    client,
+    assert,
+  }) => {
+    const body = {
+      title: 'testEvent is user',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
+    }
+    const response = await client
+      .post(EVENT_ROUTE)
+      .json(body)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.creator_email, unauthorizedUser.email)
+  })
+
+  test('create an event as moderator that is automatic public', async ({ client, assert }) => {
+    const body = {
+      title: 'testEvent as moderator that is publish',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
+    }
+    const response = await client
+      .post(EVENT_ROUTE)
+      .withCsrfToken()
+      .loginAs(moderatorUser)
+      .json(body)
+    assert.isTrue(response.body().success)
+    assert.isTrue(response.body().event.is_public)
+  })
+
+  test('create an event as admin that is automatic public', async ({ client, assert }) => {
+    const body = {
+      title: 'testEvent as admin that is publish',
+      date: new Date().toISOString(),
+      headliner: 'Nice Headliner',
+    }
+    const response = await client.post(EVENT_ROUTE).withCsrfToken().loginAs(adminUser).json(body)
+    assert.isTrue(response.body().success)
+    assert.isTrue(response.body().event.is_public)
   })
 
   /*

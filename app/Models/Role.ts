@@ -14,4 +14,14 @@ export default class Role extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  /**
+   * Check if the role name admin or moderator.
+   * @params roleId Id of the role
+   * @returns boolean
+   */
+  public static async isAllowedToPublishContent(roleId: string): Promise<boolean> {
+    const role = await this.findByOrFail('id', roleId)
+    return role.name === roles.ADMIN || role.name === roles.MODERATOR
+  }
 }
