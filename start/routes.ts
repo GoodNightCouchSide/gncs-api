@@ -15,8 +15,8 @@ Route.group(() => {
       index: [],
       show: [],
       store: [],
-      update: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
-      destroy: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      update: ['auth'],
+      destroy: ['auth'],
     })
     .apiOnly()
 

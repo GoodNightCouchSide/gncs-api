@@ -290,7 +290,45 @@ test.group('Events', (group) => {
 
     response.assertStatus(403)
     assert.isFalse(response.body().success)
-    assert.equal(response.body().message, 'You are not authorized to perform this action')
+    assert.equal(response.body().message, 'Du hast nicht die Berechtigung dieses Event zu ändern!')
+  })
+
+  test('update own an event that is not public', async ({ client, assert }) => {
+    const event = await EventFactory.merge({
+      creatorEmail: unauthorizedUser.email,
+      isPublic: false,
+    }).create()
+
+    const response = await client
+      .put(`${EVENT_ROUTE}/${event.id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+      .json({
+        title: 'This is a brand new title',
+      })
+
+    response.assertStatus(200)
+    assert.isTrue(response.body().success)
+    assert.equal(response.body().event.title, 'This is a brand new title')
+  })
+
+  test('update own an event that is all ready public', async ({ client, assert }) => {
+    const event = await EventFactory.merge({
+      creatorEmail: unauthorizedUser.email,
+      isPublic: true,
+    }).create()
+
+    const response = await client
+      .put(`${EVENT_ROUTE}/${event.id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+      .json({
+        title: 'This is a brand new title',
+      })
+
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'Du hast nicht die Berechtigung dieses Event zu ändern!')
   })
 
   test('update only a event title', async ({ client, assert }) => {
@@ -380,14 +418,42 @@ test.group('Events', (group) => {
   test('delete an event, unauthorized', async ({ client, assert }) => {
     const allEvents = await client.get(EVENT_ROUTE)
     const { id } = allEvents.body().events[0]
-
     const response = await client
       .delete(`${EVENT_ROUTE}/${id}`)
       .withCsrfToken()
       .loginAs(unauthorizedUser)
 
     response.assertStatus(403)
-    assert.equal(response.body().message, 'You are not authorized to perform this action')
+    assert.equal(response.body().message, 'Du hast nicht die Berechtigung dieses Event zu löschen!')
+  })
+
+  test('delete an onw created event that is not public', async ({ client, assert }) => {
+    const event = await EventFactory.merge({
+      creatorEmail: unauthorizedUser.email,
+      isPublic: false,
+    }).create()
+
+    const response = await client
+      .delete(`${EVENT_ROUTE}/${event.id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+
+    assert.isTrue(response.body().success)
+  })
+
+  test('delete an onw created event that is all ready public', async ({ client, assert }) => {
+    const event = await EventFactory.merge({
+      creatorEmail: unauthorizedUser.email,
+      isPublic: true,
+    }).create()
+
+    const response = await client
+      .delete(`${EVENT_ROUTE}/${event.id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+
+    response.assertStatus(403)
+    assert.equal(response.body().message, 'Du hast nicht die Berechtigung dieses Event zu löschen!')
   })
 
   test('delete an event without authentication: not logged in', async ({ client, assert }) => {
