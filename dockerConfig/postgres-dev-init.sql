@@ -1,0 +1,2 @@
+CREATE DATABASE gncs_db;
+GRANT ALL PRIVILEGES ON DATABASE gncs_db TO gncs_user;
