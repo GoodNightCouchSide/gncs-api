@@ -3,6 +3,8 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import HealthCheck from '@ioc:Adonis/Core/HealthCheck'
 import roles from 'App/constants/roles'
 
+import Application from '@ioc:Adonis/Core/Application'
+
 Route.group(() => {
   Route.group(() => {
     Route.post('/login', 'AuthController.login')
@@ -32,6 +34,8 @@ Route.group(() => {
 
   Route.get('/health', async ({ response }: HttpContextContract) => {
     const report = await HealthCheck.getReport()
-    return report.healthy ? response.ok(report) : response.badRequest(report)
+    return report.healthy
+      ? response.ok({ ...report, version: Application.version!.toString() })
+      : response.badRequest(report)
   })
 }).prefix('_api')
