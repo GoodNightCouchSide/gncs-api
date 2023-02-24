@@ -6,7 +6,7 @@ import Role from 'App/Models/Role'
 import CreateEventValidator from 'App/Validators/Event/CreateEventValidator'
 import CoverUploadValidator from 'App/Validators/Event/CoverUploadValidator'
 import UpdateEventValidator from 'App/Validators/Event/UpdateEventValidator'
-import { EventService } from 'App/Services/EventService'
+import { EventPermissionService } from 'App/Services/EventPermissionService'
 
 export default class EventsController {
   // get all events
@@ -41,11 +41,12 @@ export default class EventsController {
   public async update({ request, response, auth }: HttpContextContract) {
     const { id } = request.params()
     const event = await Event.findOrFail(id)
-
-    if (!(await EventService.isAllowedModifyOnwEvent(event, auth.user))) {
-      return response
-        .status(403)
-        .json({ success: false, message: 'Du hast nicht die Berechtigung dieses Event zu ändern!' })
+    const notAllowed = !(await EventPermissionService.isAllowedToModifyEvent(event, auth.user))
+    if (notAllowed) {
+      return response.status(403).json({
+        success: false,
+        message: 'Du hast nicht die Berechtigung dieses Event zu ändern!',
+      })
     }
     const payload = await request.validate(UpdateEventValidator)
     await event.merge(payload).save()
@@ -63,7 +64,8 @@ export default class EventsController {
     const { id } = request.params()
     const event = await Event.findOrFail(id)
 
-    if (!(await EventService.isAllowedModifyOnwEvent(event, auth.user))) {
+    const notAllowed = !(await EventPermissionService.isAllowedToModifyEvent(event, auth.user))
+    if (notAllowed) {
       return response.status(403).json({
         success: false,
         message: 'Du hast nicht die Berechtigung dieses Event zu löschen!',
