@@ -6,6 +6,7 @@ import Role from 'App/Models/Role'
 import CreateEventValidator from 'App/Validators/Event/CreateEventValidator'
 import CoverUploadValidator from 'App/Validators/Event/CoverUploadValidator'
 import UpdateEventValidator from 'App/Validators/Event/UpdateEventValidator'
+import { EventPermissionService } from 'App/Services/EventPermissionService'
 
 export default class EventsController {
   // get all events
@@ -32,21 +33,21 @@ export default class EventsController {
     const { cover } = await request.validate(CoverUploadValidator)
     event.cover = cover ? Attachment.fromFile(cover) : null
 
-    if (auth.user) {
-      // TODO set is_public if user.role equal moderator or admin
-      event.creatorEmail = auth.user.email
-      await event.save()
-    }
-
     await event.save()
     response.json({ success: true, event })
   }
 
   // update one event with id
-  public async update({ request, response }: HttpContextContract) {
+  public async update({ request, response, auth }: HttpContextContract) {
     const { id } = request.params()
     const event = await Event.findOrFail(id)
-
+    const notAllowed = !(await EventPermissionService.isAllowedToModifyEvent(event, auth.user))
+    if (notAllowed) {
+      return response.status(403).json({
+        success: false,
+        message: 'Du hast nicht die Berechtigung dieses Event zu ändern!',
+      })
+    }
     const payload = await request.validate(UpdateEventValidator)
     await event.merge(payload).save()
 
@@ -59,10 +60,17 @@ export default class EventsController {
   }
 
   // delete one event with id
-  public async destroy({ request, response }: HttpContextContract) {
+  public async destroy({ request, response, auth }: HttpContextContract) {
     const { id } = request.params()
     const event = await Event.findOrFail(id)
 
+    const notAllowed = !(await EventPermissionService.isAllowedToModifyEvent(event, auth.user))
+    if (notAllowed) {
+      return response.status(403).json({
+        success: false,
+        message: 'Du hast nicht die Berechtigung dieses Event zu löschen!',
+      })
+    }
     await event?.delete()
 
     response.json({ success: true })

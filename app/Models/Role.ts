@@ -21,6 +21,11 @@ export default class Role extends BaseModel {
    * @returns boolean
    */
   public static async isAllowedToPublishContent(roleId: string): Promise<boolean> {
+    return this.isAdminOrModerator(roleId)
+  }
+
+  public static async isAdminOrModerator(roleId): Promise<boolean> {
+    if (!roleId) return false
     const role = await this.findByOrFail('id', roleId)
     return role.name === roles.ADMIN || role.name === roles.MODERATOR
   }
