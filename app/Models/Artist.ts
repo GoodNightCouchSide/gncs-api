@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { attachment, AttachmentContract } from '@ioc:Adonis/Addons/AttachmentLite'
 
 export default class Artist extends BaseModel {
   @column({ isPrimary: true })
@@ -17,8 +18,8 @@ export default class Artist extends BaseModel {
   @column()
   public links: string[]
 
-  @column()
-  public logo: string
+  @attachment({ preComputeUrl: true })
+  public logo: AttachmentContract | null
 
   @column()
   public members: string[]

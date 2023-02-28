@@ -1,12 +1,26 @@
 import { test } from '@japa/runner'
 import Database from '@ioc:Adonis/Lucid/Database'
 import ArtistFactory from 'Database/factories/ArtistFactory'
+import { createTestUser } from '../testHelpers/createTestUser'
+import Drive from '@ioc:Adonis/Core/Drive'
+import { file } from '@ioc:Adonis/Core/Helpers'
+import { compareValues } from '../testHelpers/assertHelper'
 
 test.group('Artist', (group) => {
+  let adminUser
+  let unauthorizedUser
+  let moderatorUser
+  const ARTISTS_ROUTE = '/_api/artists'
+
   // We use the Database global transactions to have a clean database state in-between tests.
   group.each.setup(async () => {
     await Database.beginGlobalTransaction()
     await ArtistFactory.createMany(2)
+
+    const testAccount = await createTestUser()
+    unauthorizedUser = testAccount.userUser
+    adminUser = testAccount.adminUser
+    moderatorUser = testAccount.moderatorUser
     return () => Database.rollbackGlobalTransaction()
   })
 
@@ -14,7 +28,7 @@ test.group('Artist', (group) => {
    * GET Artists
    */
   test('get a list of artist', async ({ client, assert }) => {
-    const response = await client.get('/api/artists')
+    const response = await client.get(ARTISTS_ROUTE)
     response.assertStatus(200)
     assert.isTrue(response.body().success)
     const artists = response.body().artists
@@ -34,10 +48,10 @@ test.group('Artist', (group) => {
   })
 
   test('get one artist', async ({ client, assert }) => {
-    const allArtist = await client.get('/api/artists')
+    const allArtist = await client.get(ARTISTS_ROUTE)
     const { id } = allArtist.body().artists[0]
 
-    const artistResponse = await client.get(`/api/artists/${id}`)
+    const artistResponse = await client.get(`${ARTISTS_ROUTE}/${id}`)
     artistResponse.assertStatus(200)
     assert.isTrue(artistResponse.body().success)
 
@@ -56,7 +70,7 @@ test.group('Artist', (group) => {
   })
 
   test('get a non-existing artist', async ({ client }) => {
-    const artistResponse = await client.get('/api/artists/e25264cc-7a89-420d-bb74-23c4162b3616')
+    const artistResponse = await client.get(`${ARTISTS_ROUTE}/e25264cc-7a89-420d-bb74-23c4162b3616`)
     artistResponse.assertStatus(404)
   })
 
@@ -64,20 +78,30 @@ test.group('Artist', (group) => {
    * CREATE Artists
    */
   test('create an artist with all allowed fields', async ({ client, assert }) => {
+    // ARRANGE
+    const fakeDrive = Drive.fake()
+    const artistLogo = await file.generatePng('1mb')
+    const body = {
+      name: 'Example Artist',
+      genre: ['Punk', 'Slug'],
+      description: 'This is a description of the Artist',
+      links: ['http://artist.bandcomap.com', 'http://artist.bandcomap.com'],
+      members: ['Hans', 'Peter', 'Dieter'],
+      music_label: 'NiceMusicRecords',
+    }
+
+    // ACT
     const response = await client
-      .post('/api/artists')
+      .post(ARTISTS_ROUTE)
       .withCsrfToken()
-      .json({
-        name: 'Example Artist',
-        genre: ['Punk', 'Slug'],
-        description: 'This is a description of the Artist',
-        links: ['http://artist.bandcomap.com'],
-        logo: 'https://url-to-logo.com',
-        members: ['Hans', 'Peter', 'Dieter'],
-        music_label: 'NiceMusicRecords',
-      })
+      .loginAs(adminUser)
+      .fields(body)
+      .file('logo', artistLogo.contents, { filename: artistLogo.name })
+
+    // ASSERT
     assert.isTrue(response.body().success)
-    assert.properties(response.body().artist, [
+    const artist = response.body().artist
+    assert.properties(artist, [
       'id',
       'name',
       'genre',
@@ -89,5 +113,9 @@ test.group('Artist', (group) => {
       'created_at',
       'updated_at',
     ])
+    compareValues(assert, artist, body)
+    assert.isTrue(await fakeDrive.exists(artistLogo.name))
+
+    Drive.restore()
   })
 })

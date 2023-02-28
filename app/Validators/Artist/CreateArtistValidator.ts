@@ -9,13 +9,12 @@ export default class CreateArtistValidator {
     genre: schema.array([rules.minLength(1)]).members(schema.string()),
     description: schema.string.optional(),
     links: schema.array().members(schema.string()),
-    logo: schema.string.optional([rules.url()]),
     members: schema.array().members(schema.string()),
     music_label: schema.string.optional(),
   })
 
   public messages: CustomMessages = {
-    'name.required': 'Der Name des Artist angegeben werden.',
+    'name.required': 'Der Name muss angegeben werden.',
     'genre.required': 'Es muss mindestens ein Genre angegeben werden.',
   }
 }

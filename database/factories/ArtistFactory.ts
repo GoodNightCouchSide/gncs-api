@@ -1,25 +1,12 @@
 import Factory from '@ioc:Adonis/Lucid/Factory'
 import Artist from 'App/Models/Artist'
+import { createAttachmentImage, getLinks, getMusicGenres, getRandomNames } from './Helpers'
 
-export default Factory.define(Artist, ({ faker }: any) => {
-  // random number between 1 and 5
-  let i = Math.floor(Math.random() * 6 + 1)
-  const genres = new Set<string>()
-  while (i > 0) {
-    const genre = faker.music.genre()
-    if (genres.has(genre)) continue
-    genres.add(genre)
-    i--
-  }
-
-  const links: string[] = new Array(Math.floor(Math.random() * 3 + 1))
-    .fill(null)
-    .map(() => faker.internet.url())
-
-  const members = new Array(Math.floor(Math.random() * 5 + 1))
-    .fill(null)
-    .map(() => faker.name.fullName())
-
+export default Factory.define(Artist, async ({ faker }: any) => {
+  const genres = getMusicGenres(faker)
+  const links = getLinks(faker, 2)
+  const members = getRandomNames(faker, 4)
+  const logo = await createAttachmentImage(`${faker.random.alphaNumeric(10)}.png`)
   return {
     name: faker.random.word(),
     genre: Array.from(genres),
@@ -27,6 +14,6 @@ export default Factory.define(Artist, ({ faker }: any) => {
     links,
     members,
     musicLabel: faker.random.word(),
-    logo: faker.internet.url(),
+    logo,
   }
 }).build()
