@@ -348,6 +348,25 @@ test.group('Events', (group) => {
     assert.equal(response.body().event.title, 'This is a brand new title')
   })
 
+  test('update isPublic as unauthorized user', async ({ client, assert }) => {
+    const event = await EventFactory.merge({
+      creatorEmail: unauthorizedUser.email,
+      isPublic: false,
+    }).create()
+
+    const response = await client
+      .put(`${EVENT_ROUTE}/${event.id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+      .json({
+        is_public: true,
+      })
+
+    assert.isFalse(response.body().success)
+    response.assertStatus(422)
+    assert.equal(response.body().message.errors[0].message, 'Not allowed to set isPublic')
+  })
+
   test('update the cover with a too large image', async ({ client, assert }) => {
     // ARRANGE
     await EventFactory.create()
