@@ -13,8 +13,7 @@ export default class UpdateEventValidator {
     box_office: schema.string.optional(),
     pre_payment: schema.string.optional(),
     alternative_address: schema.string.optional(),
-    // TODO: only allowed if the create a moderator or admin
-    is_public: schema.boolean.optional(),
+    is_public: schema.boolean.optional([rules.isAdminOrModerator(this.ctx.auth.user?.roleId)]),
     venue_id: schema.string.optional([rules.exists({ table: 'venues', column: 'id' })]),
     event_links: schema.string.optional(),
   })
@@ -25,5 +24,6 @@ export default class UpdateEventValidator {
     'venue_id.exists': 'Referenced venue does not exist',
     'creator_email.email': 'Please enter a valid email address',
     'creator_email.exists': 'Referenced user does not exist',
+    'is_public.isAdminOrModerator': 'Not allowed to set isPublic',
   }
 }
