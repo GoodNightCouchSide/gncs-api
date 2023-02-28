@@ -1,0 +1,123 @@
+name: Deploy gncs staging api
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test_api:
+    # containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    container: node:16
+
+    services:
+      # label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:13
+        # service environment variables
+        # `POSTGRES_HOST` is `postgres`
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: db_test
+          POSTGRES_USER: postgres_user
+        ports:
+          # maps tcp port 5432 on service container to the host
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Downloads a copy of the code in the repo to the CI instance before running CI tests
+      - uses: actions/checkout@v3
+      # Cache node_moules
+      - name: Install Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      # Performs a clean installation of all dependencies in the `package.json` file
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # Create a publishable build folder
+      - name: Build
+        run: npm run build
+
+      - name: Run the tests
+        run: npm test
+        env:
+          HOST: 0.0.0.0
+          PORT: 3333
+          APP_KEY: RANDOMBUTFLUFFYZORRO
+          PG_HOST: postgres
+          PG_PORT: 5432
+          PG_USER: postgres_user
+          PG_DB_NAME: db_test
+          PG_PASSWORD: postgres
+          DRIVE_DISK: local
+          CACHE_VIEWS: false
+          SESSION_DRIVER: memory
+
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    needs:
+     - test_api
+    
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
+      
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: gncs/gncs-api
+          tags: |
+            type=semver,pattern={{major}}.{{minor}}.{{patch}},value=${{ steps.package-version.outputs.current-version }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  pull_from_registry:
+    name: Login on Server on pull latest image
+    runs-on: ubuntu-latest
+    needs: 
+     - push_to_registry
+    steps:
+      - name: multiple command
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGE_HOST }}
+          username: ${{ secrets.STAGE_USERNAME }}
+          key: ${{ secrets.STAGE_KEY }}
+          port: ${{ secrets.STAGE_PORT }}
+          script: |
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | sudo docker login --username gncs --password-stdin
+            cd gncs-api
+            sudo docker-compose pull
+            sudo docker-compose up -d
