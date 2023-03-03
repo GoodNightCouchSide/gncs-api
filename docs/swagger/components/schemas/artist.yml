@@ -4,7 +4,7 @@ components:
       type: object
       required:
         - name
-        - genre
+        - genres
       properties:
         name:
           type: string
@@ -18,7 +18,7 @@ components:
           type: string
           format: hostname
           description: url link to artist logo
-        genre:
+        genres:
           type: string
           description: Is a stringify String array with genres
           example: "['punk', 'ska']"

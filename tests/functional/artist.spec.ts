@@ -34,7 +34,7 @@ test.group('Artist', (group) => {
     assert.onlyProperties(artists[0], [
       'id',
       'name',
-      'genre',
+      'genres',
       'description',
       'links',
       'logo',
@@ -56,7 +56,7 @@ test.group('Artist', (group) => {
     assert.onlyProperties(artistResponse.body().artist, [
       'id',
       'name',
-      'genre',
+      'genres',
       'description',
       'links',
       'logo',
@@ -81,7 +81,7 @@ test.group('Artist', (group) => {
     const artistLogo = await file.generatePng('1mb')
     const body = {
       name: 'Example Artist',
-      genre: ['Punk', 'Slug'],
+      genres: ['Punk', 'Slug'],
       description: 'This is a description of the Artist',
       links: ['http://artist.bandcomap.com', 'http://artist.bandcomap.com'],
       members: ['Hans', 'Peter', 'Dieter'],
@@ -102,7 +102,7 @@ test.group('Artist', (group) => {
     assert.properties(artist, [
       'id',
       'name',
-      'genre',
+      'genres',
       'description',
       'links',
       'logo',
@@ -131,7 +131,7 @@ test.group('Artist', (group) => {
     // ACT
     const requestBody = {
       name: 'Example Artist',
-      genre: ['Punk', 'Slug'],
+      genres: ['Punk', 'Slug'],
       description: 'This is a description of the Artist',
       links: ['http://artist.bandcomap.com', 'http://artist.bandcomap.com'],
       members: ['Hans', 'Peter', 'Dieter'],

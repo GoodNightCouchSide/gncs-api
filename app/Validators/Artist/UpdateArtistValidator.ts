@@ -6,7 +6,7 @@ export default class UpdateArtistValidator {
 
   public schema = schema.create({
     name: schema.string.optional(),
-    genre: schema.array.optional([rules.minLength(1)]).members(schema.string()),
+    genres: schema.array.optional([rules.minLength(1)]).members(schema.string()),
     description: schema.string.optional(),
     links: schema.array.optional([rules.minLength(1)]).members(schema.string()),
     members: schema.array().members(schema.string()),

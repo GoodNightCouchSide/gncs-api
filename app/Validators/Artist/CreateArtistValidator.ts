@@ -6,7 +6,7 @@ export default class CreateArtistValidator {
 
   public schema = schema.create({
     name: schema.string(),
-    genre: schema.array([rules.minLength(1)]).members(schema.string()),
+    genres: schema.array([rules.minLength(1)]).members(schema.string()),
     description: schema.string.optional(),
     links: schema.array().members(schema.string()),
     members: schema.array().members(schema.string()),
@@ -15,6 +15,6 @@ export default class CreateArtistValidator {
 
   public messages: CustomMessages = {
     'name.required': 'Der Name muss angegeben werden.',
-    'genre.required': 'Es muss mindestens ein Genre angegeben werden.',
+    'genres.required': 'Es muss mindestens ein Genre angegeben werden.',
   }
 }

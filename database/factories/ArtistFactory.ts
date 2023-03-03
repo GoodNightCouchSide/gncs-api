@@ -9,7 +9,7 @@ export default Factory.define(Artist, async ({ faker }: any) => {
   const logo = await createAttachmentImage(`${faker.random.alphaNumeric(10)}.png`)
   return {
     name: faker.random.word(),
-    genre: Array.from(genres),
+    genres: Array.from(genres),
     description: faker.random.words(20),
     links,
     members,
