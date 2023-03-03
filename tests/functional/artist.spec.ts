@@ -9,7 +9,6 @@ import { compareValues } from '../testHelpers/assertHelper'
 test.group('Artist', (group) => {
   let adminUser
   let unauthorizedUser
-  let moderatorUser
   const ARTISTS_ROUTE = '/_api/artists'
 
   // We use the Database global transactions to have a clean database state in-between tests.
@@ -20,7 +19,6 @@ test.group('Artist', (group) => {
     const testAccount = await createTestUser()
     unauthorizedUser = testAccount.userUser
     adminUser = testAccount.adminUser
-    moderatorUser = testAccount.moderatorUser
     return () => Database.rollbackGlobalTransaction()
   })
 
@@ -117,5 +115,86 @@ test.group('Artist', (group) => {
     assert.isTrue(await fakeDrive.exists(artistLogo.name))
 
     Drive.restore()
+  })
+
+  /*
+   * UPDATE artists
+   */
+  test('update the whole artist', async ({ client, assert }) => {
+    // ARRANGE
+    const allArtists = await client.get(ARTISTS_ROUTE)
+    const { id } = allArtists.body().artists[0]
+
+    const fakeDrive = Drive.fake()
+    const artistLogo = await file.generatePng('1mb')
+
+    // ACT
+    const requestBody = {
+      name: 'Example Artist',
+      genre: ['Punk', 'Slug'],
+      description: 'This is a description of the Artist',
+      links: ['http://artist.bandcomap.com', 'http://artist.bandcomap.com'],
+      members: ['Hans', 'Peter', 'Dieter'],
+      music_label: 'NiceMusicRecords',
+    }
+
+    const response = await client
+      .put(`${ARTISTS_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(adminUser)
+      .file('logo', artistLogo.contents, { filename: artistLogo.name })
+      .fields(requestBody)
+    const updateArtist = response.body().artist
+
+    // ASSERT
+    assert.isTrue(response.body().success)
+    compareValues(assert, updateArtist, requestBody)
+    assert.isTrue(await fakeDrive.exists(artistLogo.name))
+
+    Drive.restore()
+  })
+
+  test('update an artist without authentication', async ({ client, assert }) => {
+    const allArtists = await client.get(ARTISTS_ROUTE)
+    const { id } = allArtists.body().artists[0]
+
+    const response = await client
+      .put(`${ARTISTS_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+      .json({
+        name: 'This is a brand new artist name',
+      })
+
+    response.assertStatus(403)
+    assert.isFalse(response.body().success)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
+  })
+
+  /*
+   * DELETE artists
+   */
+  test('delete an artist with admin user', async ({ client, assert }) => {
+    const allArtist = await client.get(ARTISTS_ROUTE)
+    const { id } = allArtist.body().artists[0]
+
+    const response = await client
+      .delete(`${ARTISTS_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(adminUser)
+    assert.isTrue(response.body().success)
+    assert.notExists(response.body().artist)
+  })
+
+  test('delete an artist, unauthorized', async ({ client, assert }) => {
+    const allArtists = await client.get(ARTISTS_ROUTE)
+    const { id } = allArtists.body().artists[0]
+    const response = await client
+      .delete(`${ARTISTS_ROUTE}/${id}`)
+      .withCsrfToken()
+      .loginAs(unauthorizedUser)
+
+    response.assertStatus(403)
+    assert.equal(response.body().message, 'You are not authorized to perform this action')
   })
 })
