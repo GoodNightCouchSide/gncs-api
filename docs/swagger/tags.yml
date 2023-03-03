@@ -3,3 +3,5 @@ tags:
     description: Auth Route
   - name: Event
     description: Event Route
+  - name: Artist
+    description: Artist Route

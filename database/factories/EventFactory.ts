@@ -1,25 +1,12 @@
 import Factory from '@ioc:Adonis/Lucid/Factory'
-import Drive from '@ioc:Adonis/Core/Drive'
-import { file } from '@ioc:Adonis/Core/Helpers'
-import { Attachment } from '@ioc:Adonis/Addons/AttachmentLite'
 import { DateTime } from 'luxon'
 
 import Event from '../../app/Models/Event'
+import { createAttachmentImage } from './Helpers'
 
 export const EventFactory = Factory.define(Event, async ({ faker }: any) => {
   const support = new Array(5).fill(null).map(() => faker.random.word())
-
-  // Create an instance of attachment and mark image as persisted
-  const coverImage = new Attachment({
-    extname: 'png',
-    mimeType: 'image/png',
-    size: 10 * 1000,
-    name: `${faker.random.alphaNumeric(10)}.png`,
-  })
-  coverImage.isPersisted = true
-
-  // Persist the file using Drive.
-  await Drive.put(coverImage.name, (await file.generatePng('1mb')).contents)
+  const coverImage = await createAttachmentImage(`${faker.random.alphaNumeric(10)}.png`)
 
   return {
     title: faker.random.word(),

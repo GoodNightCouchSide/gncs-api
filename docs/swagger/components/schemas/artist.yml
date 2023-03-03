@@ -1,0 +1,52 @@
+components:
+  schemas:
+    BasicArtist:
+      type: object
+      required:
+        - name
+        - genres
+      properties:
+        name:
+          type: string
+          example: Fake Artist
+          description: This Artist name has to unique
+        description:
+          type: string
+          description: The Information for the Artist
+          example: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+        logo:
+          type: string
+          format: hostname
+          description: url link to artist logo
+        genres:
+          type: string
+          description: Is a stringify String array with genres
+          example: "['punk', 'ska']"
+        members:
+          type: string
+          description: Is a stringify String array with artist members
+          example: "['Klaus(triangel)', 'Peter(xylophon)']"
+        links:
+          type: string
+          format: uuid
+          description: Is a stringify String array with links about this artist
+          example: "['https://facebook.de', 'https://bandcamp.com']"
+        music_label:
+          type: string
+          description: Is the music label of this artist
+          example: Ruegencore Records
+    Artist:
+      allOf:
+        - $ref: '#components/schemas/BasicArtist'
+        - type: object
+          properties:
+            uuid:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+  
