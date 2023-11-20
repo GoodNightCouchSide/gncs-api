@@ -30,6 +30,16 @@ Route.group(() => {
     })
     .apiOnly()
 
+  Route.resource('artists', 'ArtistsController')
+    .apiOnly()
+    .middleware({
+      index: [],
+      show: [],
+      store: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      update: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+      destroy: ['auth', `hasRole:${roles.ADMIN},${roles.MODERATOR}`],
+    })
+
   Route.get('/health', async ({ response }: HttpContextContract) => {
     const report = await HealthCheck.getReport()
     return report.healthy ? response.ok(report) : response.badRequest(report)
